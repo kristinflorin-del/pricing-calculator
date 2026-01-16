@@ -11,15 +11,12 @@ st.set_page_config(
 )
 
 # --- CSS: SMART LOGO ADAPTER ---
+# Removed the .stApp background-color rules.
+# Only keeping the Logo Adapter logic so it works in both Light & Dark modes.
 st.markdown("""
     <style>
-        .stApp { background-color: #000000; color: #FAFAFA; }
-        [data-testid="stSidebar"] { background-color: #111111; }
-        .stTextInput > div > div > input { color: #FAFAFA; }
-        .stNumberInput > div > div > input { color: #FAFAFA; }
-        p, h1, h2, h3, label { color: #FAFAFA !important; }
-
         /* SMART LOGO ADAPTER (High Contrast Fix) */
+        /* This ensures the logo is Black in Light Mode and White in Dark Mode */
         [data-testid="stSidebar"] img {
             mix-blend-mode: difference;
             filter: grayscale(100%) contrast(200%) brightness(200%);
@@ -222,7 +219,7 @@ with retail_container:
 # --- 6. FINAL MARGIN MATH ---
 
 wholesale_price = retail_price / 2
-total_wholesale_revenue = wholesale_price * units # Calculated for the updated display
+total_wholesale_revenue = wholesale_price * units
 
 gross_margin_dollar = wholesale_price - total_cogs
 gross_margin_percent = (gross_margin_dollar / wholesale_price) * 100
@@ -239,7 +236,7 @@ st.header("Results Summary")
 gm_color = get_margin_color_style(gross_margin_percent, is_gross=True)
 cm_color = get_margin_color_style(contribution_margin_percent, is_gross=False)
 
-# UPDATED: Now using 4 columns to include Total Wholesale Price
+# Using 4 columns to include Total Wholesale Price
 col_res1, col_res2, col_res3, col_res4 = st.columns(4)
 
 col_res1.markdown(f"""
