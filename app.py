@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components # Required for the new JS logic
 import pandas as pd
 import math
 
@@ -19,15 +18,6 @@ st.markdown("""
         .stTextInput > div > div > input { color: #FAFAFA; }
         .stNumberInput > div > div > input { color: #FAFAFA; }
         p, h1, h2, h3, label { color: #FAFAFA !important; }
-        
-        /* Make the Done button stand out */
-        div.stButton > button {
-            width: 100%;
-            border-color: #FAFAFA;
-            color: #FAFAFA;
-            background-color: #262730;
-            font-weight: bold;
-        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -130,36 +120,6 @@ with st.sidebar:
     ve_royalties = st.number_input("Licensing Royalties %", value=18.0) / 100
     ve_commissions = st.number_input("Sales Commissions %", value=4.4) / 100
     ve_freelance = st.number_input("Freelance Artist %", value=0.0) / 100
-
-    # --- DONE BUTTON (Robust JS Solution) ---
-    st.markdown("---")
-    if st.button("Done"):
-        # We use a comprehensive Javascript injection that tries multiple selectors
-        # to find the "Close Sidebar" button on Desktop AND Mobile.
-        js = '''
-        <script>
-            var doc = window.parent.document;
-            
-            // Method 1: The standard Desktop collapse arrow
-            var btn = doc.querySelector('[data-testid="stSidebarCollapseButton"]');
-            if (btn) {
-                btn.click();
-            } else {
-                // Method 2: The Mobile "X" button (often has an aria-label)
-                var mobileBtn = doc.querySelector('button[aria-label="Close sidebar"]');
-                if (mobileBtn) {
-                    mobileBtn.click();
-                } else {
-                    // Method 3: Fallback - grab the first button in the sidebar header
-                    var headerBtns = doc.querySelectorAll('[data-testid="stSidebar"] button');
-                    if (headerBtns.length > 0) {
-                        headerBtns[0].click();
-                    }
-                }
-            }
-        </script>
-        '''
-        components.html(js, height=0, width=0)
 
 # --- 4. CALCULATE COGS (For Retail Logic) ---
 
