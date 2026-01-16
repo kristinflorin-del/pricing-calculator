@@ -10,18 +10,24 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS: SMART LOGO ADAPTER ---
+# --- CSS: SHARP LOGO ADAPTER ---
 st.markdown("""
     <style>
-        /* SMART LOGO ADAPTER */
-        [data-testid="stSidebar"] [data-testid="stImage"] img {
-            mix-blend-mode: difference;
-            /* 1. brightness(3):  Lifts the "dull grey" produced by the dark sidebar math.
-               2. contrast(5):    Forces the lifted grey to snap to Pure White.
-                                  (And keeps the Black logo Pure Black in light mode).
-               3. saturate(0):    Removes any accidental color tinting.
-            */
-            filter: brightness(3) contrast(5) saturate(0);
+        /* 1. Default (Dark Mode): Keep logo White (No Filter) */
+        [data-testid="stSidebar"] img {
+            transition: filter 0.3s ease; /* Smooth transition when toggling themes */
+        }
+
+        /* 2. Light Mode (Manual): Invert White Logo to Black */
+        [data-theme="light"] [data-testid="stSidebar"] img {
+            filter: invert(1) brightness(0); /* Turns white to pure black */
+        }
+
+        /* 3. Light Mode (System Auto): Invert White Logo to Black */
+        @media (prefers-color-scheme: light) {
+            [data-theme="auto"] [data-testid="stSidebar"] img {
+                filter: invert(1) brightness(0);
+            }
         }
     </style>
 """, unsafe_allow_html=True)
