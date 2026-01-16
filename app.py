@@ -190,10 +190,17 @@ cm_color = get_margin_color_style(contribution_margin_percent, is_gross=False)
 
 col_res1, col_res2, col_res3 = st.columns(3)
 
-# 1. Wholesale Price (Standard Metric)
-col_res1.metric("Wholesale Price (50% Retail)", f"${wholesale_price:,.2f}")
+# 1. Wholesale Price (CUSTOM HTML to match format)
+col_res1.markdown(f"""
+    <div style="text-align: left;">
+        <p style="font-size: 14px; margin-bottom: 0px;">Wholesale Price (50% Retail)</p>
+        <p style="font-size: 26px; font-weight: bold; margin: 0px; line-height: 1.2;">
+            ${wholesale_price:,.2f}
+        </p>
+    </div>
+""", unsafe_allow_html=True)
 
-# 2. Gross Margin (No Box, Just Text)
+# 2. Gross Margin (Custom HTML)
 col_res2.markdown(f"""
     <div style="text-align: left;">
         <p style="font-size: 14px; margin-bottom: 0px;">Gross Margin ($)</p>
@@ -204,7 +211,7 @@ col_res2.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# 3. Contribution Margin (No Box, Just Text)
+# 3. Contribution Margin (Custom HTML)
 col_res3.markdown(f"""
     <div style="text-align: left;">
         <p style="font-size: 14px; margin-bottom: 0px;">Contrib. Margin ($)</p>
