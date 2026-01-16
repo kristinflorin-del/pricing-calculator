@@ -76,6 +76,16 @@ def get_margin_color_style(value, is_gross=True):
 
 # --- 3. INPUTS SIDEBAR ---
 with st.sidebar:
+    # --- LOGO SECTION ---
+    # Looking for 'logo.png' in the same folder
+    try:
+        st.image("logo.png", use_container_width=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+    except:
+        # Fallback if they haven't saved the file yet
+        st.warning("⚠️ Logo not found. Please save your file as 'logo.png' in this folder.")
+        st.markdown("<br>", unsafe_allow_html=True)
+
     # --- SECTION 1: ORDER DETAILS ---
     st.header("1. Order Details")
     
@@ -222,7 +232,7 @@ col_res3.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# Added Extra Spacing here
+# Extra Spacing
 st.markdown("<br><br>", unsafe_allow_html=True)
 
 st.markdown("### Cost Breakdown Table")
