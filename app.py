@@ -11,15 +11,17 @@ st.set_page_config(
 )
 
 # --- CSS: SMART LOGO ADAPTER ---
-# Removed the .stApp background-color rules.
-# Only keeping the Logo Adapter logic so it works in both Light & Dark modes.
 st.markdown("""
     <style>
         /* SMART LOGO ADAPTER (High Contrast Fix) */
-        /* This ensures the logo is Black in Light Mode and White in Dark Mode */
         [data-testid="stSidebar"] img {
             mix-blend-mode: difference;
-            filter: grayscale(100%) contrast(200%) brightness(200%);
+            /* Nuclear Option for Brightness:
+               - We boost brightness by 5x (500%).
+               - In Light Mode: Black (0) * 5 = 0 (Stays Pure Black).
+               - In Dark Mode: Light Grey (200) * 5 = 1000 -> Caps at 255 (Pure Sharp White).
+            */
+            filter: brightness(5) grayscale(100%);
         }
     </style>
 """, unsafe_allow_html=True)
