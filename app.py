@@ -4,6 +4,7 @@ import math
 import streamlit.components.v1 as components
 
 # --- 1. SETUP & CONFIGURATION ---
+# initial_sidebar_state="expanded" ensures it opens automatically on load
 st.set_page_config(
     page_title="Print Cost Calculator 2026", 
     layout="wide", 
@@ -13,14 +14,20 @@ st.set_page_config(
 # --- CSS: SMART LOGO ADAPTER ---
 st.markdown("""
     <style>
-        /* 1. Smart Logo Adapter */
+        .stApp { background-color: #000000; color: #FAFAFA; }
+        [data-testid="stSidebar"] { background-color: #111111; }
+        .stTextInput > div > div > input { color: #FAFAFA; }
+        .stNumberInput > div > div > input { color: #FAFAFA; }
+        p, h1, h2, h3, label { color: #FAFAFA !important; }
+
+        /* SMART LOGO ADAPTER (High Contrast Fix) */
         [data-testid="stSidebar"] img {
             mix-blend-mode: difference;
-            /* The brightness filter fixes the "dull white" issue in dark mode.
-               Dark Mode: (White - DarkGrey) = LightGrey * 3 -> Pure White.
-               Light Mode: (White - White) = Black * 3 -> Pure Black.
+            /* 1. grayscale(100%): Removes any color shifting/tinting.
+               2. contrast(200%): Pushes light greys to White and dark greys to Black.
+               3. brightness(200%): Boosts the white intensity to ensure it pops.
             */
-            filter: brightness(3) saturate(0); 
+            filter: grayscale(100%) contrast(200%) brightness(200%);
         }
     </style>
 """, unsafe_allow_html=True)
@@ -60,10 +67,12 @@ def calculate_flash(screens):
 def get_margin_color_style(value, is_gross=True):
     if value < 0: return "red"
     if is_gross:
+        # GM Logic: < 46 Orange, < 50 Yellow, >= 50 Green
         if value < 46: return "orange" 
         elif value < 50: return "#D4AC0D" # Dark Gold
         else: return "green" 
     else:
+        # CM Logic: < 16 Orange, < 25 Yellow, >= 25 Green
         if value < 16: return "orange" 
         elif value < 25: return "#D4AC0D" 
         else: return "green" 
