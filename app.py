@@ -19,12 +19,13 @@ st.markdown("""
         .stNumberInput > div > div > input { color: #FAFAFA; }
         p, h1, h2, h3, label { color: #FAFAFA !important; }
         
-        /* Make the Done button stand out slightly */
+        /* Make the Done button stand out */
         div.stButton > button {
             width: 100%;
             border-color: #FAFAFA;
             color: #FAFAFA;
             background-color: #262730;
+            font-weight: bold;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -132,17 +133,20 @@ with st.sidebar:
     # --- DONE BUTTON (Sidebar Footer) ---
     st.markdown("---")
     if st.button("Done"):
-        # This Javascript mimics clicking the "X" or "Arrow" to close the sidebar
         st.markdown(
             """
             <script>
+                // 1. Try the standard Collapse button (Desktop/Tablet)
                 var collapseBtn = window.parent.document.querySelector('[data-testid="stSidebarCollapseButton"]');
                 if (collapseBtn) {
                     collapseBtn.click();
                 } else {
-                    // Fallback attempt for different versions/mobile
-                    var headerBtn = window.parent.document.querySelector('[data-testid="stSidebar"] button');
-                    if (headerBtn) headerBtn.click();
+                    // 2. Try the Mobile specific "Close" button (X icon)
+                    // Mobile views often use an 'aria-label' or a different class structure
+                    var mobileClose = window.parent.document.querySelector('button[aria-label="Close sidebar"]');
+                    if (mobileClose) {
+                        mobileClose.click();
+                    }
                 }
             </script>
             """,
