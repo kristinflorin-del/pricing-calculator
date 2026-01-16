@@ -53,12 +53,14 @@ def calculate_flash(screens):
 # --- 3. INPUTS SIDEBAR ---
 with st.sidebar:
     st.header("1. Job Specs")
-    units = st.number_input("Units (Quantity)", min_value=12, value=250, step=1)
+    # Updated Default: 144
+    units = st.number_input("Units (Quantity)", min_value=12, value=144, step=1)
     
     st.header("2. Print Locations")
+    # Updated Defaults: 3 Front, 0 Back, 0 Sleeve, 0 Sleeve
     screens_f = st.number_input("Screens Front", 0, 10, 3)
-    screens_b = st.number_input("Screens Back", 0, 10, 2)
-    screens_rs = st.number_input("Screens Right Sleeve", 0, 10, 3)
+    screens_b = st.number_input("Screens Back", 0, 10, 0)
+    screens_rs = st.number_input("Screens Right Sleeve", 0, 10, 0)
     screens_ls = st.number_input("Screens Left Sleeve", 0, 10, 0)
     
     total_screens = screens_f + screens_b + screens_rs + screens_ls
@@ -74,9 +76,9 @@ with st.sidebar:
 
     # --- LOCKED SCREEN LOGIC START ---
     st.header("3. Setup & Fees")
+    # Updated Default: False (Toggled Off)
     is_reorder = st.toggle("Is this a Reorder?", value=False)
     
-    # Logic: New=23, Reorder>144=0, Reorder<145=15
     if is_reorder:
         if units > 144:
             calculated_screen_price = 0.0
@@ -95,7 +97,8 @@ with st.sidebar:
     )
     # --- LOCKED SCREEN LOGIC END ---
     
-    # --- LOCKED FLEECE LOGIC START (Updated to Toggle) ---
+    # --- LOCKED FLEECE LOGIC START ---
+    # Updated Default: False (Toggled Off)
     is_fleece = st.toggle("Is the product fleece?", value=False)
     
     if is_fleece:
@@ -111,8 +114,9 @@ with st.sidebar:
     # --- LOCKED FLEECE LOGIC END ---
 
     st.header("4. Product Cost")
-    retail_price = st.number_input("Retail Price ($)", value=36.70)
-    blank_price = st.number_input("Blank Garment Price ($)", value=4.21)
+    # Updated Defaults: Retail $36.00, Blank $3.33
+    retail_price = st.number_input("Retail Price ($)", value=36.00)
+    blank_price = st.number_input("Blank Garment Price ($)", value=3.33)
 
 # --- 4. CALCULATIONS ---
 
@@ -133,8 +137,9 @@ else:
 
 # Variable Expenses
 with st.expander("Variable Expenses (%)"):
-    ve_rebates = st.number_input("Buyer Rebates %", value=0.0) / 100
-    ve_royalties = st.number_input("Licensing Royalties %", value=0.0) / 100
+    # Updated Defaults: Rebates 2.5%, Royalties 18%, Comm 4.4%, Artist 0%
+    ve_rebates = st.number_input("Buyer Rebates %", value=2.5) / 100
+    ve_royalties = st.number_input("Licensing Royalties %", value=18.0) / 100
     ve_commissions = st.number_input("Sales Commissions %", value=4.4) / 100
     ve_freelance = st.number_input("Freelance Artist %", value=0.0) / 100
 
