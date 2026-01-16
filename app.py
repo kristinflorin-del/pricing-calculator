@@ -88,17 +88,28 @@ with st.sidebar:
         calculated_screen_price = 23.0
         lock_msg = "New Order Standard"
         
-    # CHANGE: Using st.text_input instead of st.number_input removes the +/- buttons
     st.text_input(
         f"Price Per Screen - {lock_msg}", 
-        value=f"${calculated_screen_price:.2f}", # Formatted as currency string
+        value=f"${calculated_screen_price:.2f}",
         disabled=True
     )
-    # Note: We now use the variable 'calculated_screen_price' directly in the math below
     # --- LOCKED SCREEN LOGIC END ---
     
+    # --- LOCKED FLEECE LOGIC START ---
     is_fleece = st.checkbox("Is Fleece?")
-    fleece_charge = st.number_input("Fleece Charge ($)", value=0.0) if is_fleece else 0.0
+    
+    if is_fleece:
+        fleece_charge = 0.20
+    else:
+        fleece_charge = 0.00
+        
+    # Read-only text input for fleece charge
+    st.text_input(
+        "Fleece Charge (Per Unit)",
+        value=f"${fleece_charge:.2f}",
+        disabled=True
+    )
+    # --- LOCKED FLEECE LOGIC END ---
 
     st.header("4. Product Cost")
     retail_price = st.number_input("Retail Price ($)", value=36.70)
@@ -131,60 +142,4 @@ with st.expander("Variable Expenses (%)"):
 # --- 5. FINAL MATH ---
 
 # 1. Base Print Cost Sum
-raw_print_cost_per_unit = cost_front + cost_back + cost_rs + cost_ls + total_flash
-
-# 2. Screen Fees (Using the calculated variable directly)
-total_screen_fees = total_screens * calculated_screen_price
-
-# 3. Discount Logic
-discount_percent = 0.12
-gross_print_run_cost = (raw_print_cost_per_unit * units) + total_screen_fees
-discounted_print_run_cost = gross_print_run_cost * (1 - discount_percent)
-
-# 4. Final Per Unit Print Cost
-final_print_cost_per_unit = discounted_print_run_cost / units
-
-# 5. COGS
-vas_cost = 1.60
-total_cogs = final_print_cost_per_unit + blank_price + vas_cost + fleece_charge
-
-# 6. Margins
-wholesale_price = retail_price / 2
-gross_margin_dollar = wholesale_price - total_cogs
-gross_margin_percent = (gross_margin_dollar / wholesale_price) * 100
-
-# Contribution Margin
-total_var_expense_pct = ve_rebates + ve_royalties + ve_commissions + ve_freelance
-var_expenses_dollar = wholesale_price * total_var_expense_pct
-contribution_margin_dollar = gross_margin_dollar - var_expenses_dollar
-contribution_margin_percent = (contribution_margin_dollar / wholesale_price) * 100
-
-# --- 6. DISPLAY RESULTS ---
-
-st.header("Results Summary")
-
-col_res1, col_res2, col_res3 = st.columns(3)
-col_res1.metric("Wholesale Price (50% Retail)", f"${wholesale_price:,.2f}")
-col_res2.metric("Gross Margin ($)", f"${gross_margin_dollar:,.2f}", f"{gross_margin_percent:.1f}%")
-col_res3.metric("Contrib. Margin ($)", f"${contribution_margin_dollar:,.2f}", f"{contribution_margin_percent:.1f}%")
-
-st.markdown("### Cost Breakdown Table")
-
-data = {
-    "Line Item": ["Price Charging", "Print Cost (with 12% disc)", "Blank Price", "VAS", "Fleece Charge", "TOTAL COGS"],
-    "Per Unit": [wholesale_price, final_print_cost_per_unit, blank_price, vas_cost, fleece_charge, total_cogs],
-    "Total Run": [wholesale_price * units, discounted_print_run_cost, blank_price * units, vas_cost * units, fleece_charge * units, total_cogs * units]
-}
-df = pd.DataFrame(data)
-
-st.dataframe(
-    df.style.format({"Per Unit": "${:.2f}", "Total Run": "${:,.2f}"}), 
-    use_container_width=True,
-    hide_index=True
-)
-
-with st.expander("Show detailed breakdown"):
-    st.write(f"**Total Screen Fees:** ${total_screen_fees:.2f}")
-    st.write(f"**Auto-Calculated Flash Total:** ${total_flash:.2f}")
-    st.write(f"**Pre-Discount Print Total:** ${gross_print_run_cost:.2f}")
-    st.write(f"**Discount Applied:** 12% (-${gross_print_run_cost - discounted_print_run_cost:.2f})")
+raw_print_cost_per_unit
