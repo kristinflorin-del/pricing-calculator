@@ -190,37 +190,40 @@ cm_color = get_margin_color_style(contribution_margin_percent, is_gross=False)
 
 col_res1, col_res2, col_res3 = st.columns(3)
 
-# 1. Wholesale Price (CUSTOM HTML to match format)
+# 1. Wholesale Price (Big Font)
 col_res1.markdown(f"""
     <div style="text-align: left;">
-        <p style="font-size: 14px; margin-bottom: 0px;">Wholesale Price (50% Retail)</p>
-        <p style="font-size: 26px; font-weight: bold; margin: 0px; line-height: 1.2;">
+        <p style="font-size: 16px; margin-bottom: 5px;">Wholesale Price (50% Retail)</p>
+        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1;">
             ${wholesale_price:,.2f}
         </p>
     </div>
 """, unsafe_allow_html=True)
 
-# 2. Gross Margin (Custom HTML)
+# 2. Gross Margin (Big Font + Color)
 col_res2.markdown(f"""
     <div style="text-align: left;">
-        <p style="font-size: 14px; margin-bottom: 0px;">Gross Margin ($)</p>
-        <p style="font-size: 26px; font-weight: bold; margin: 0px; line-height: 1.2;">
+        <p style="font-size: 16px; margin-bottom: 5px;">Gross Margin ($)</p>
+        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1;">
             ${gross_margin_dollar:,.2f} 
-            <span style="color: {gm_color}; font-size: 22px; margin-left: 8px;">{gross_margin_percent:.1f}%</span>
+            <span style="color: {gm_color}; font-size: 28px; margin-left: 8px;">{gross_margin_percent:.1f}%</span>
         </p>
     </div>
 """, unsafe_allow_html=True)
 
-# 3. Contribution Margin (Custom HTML)
+# 3. Contribution Margin (Big Font + Color)
 col_res3.markdown(f"""
     <div style="text-align: left;">
-        <p style="font-size: 14px; margin-bottom: 0px;">Contrib. Margin ($)</p>
-        <p style="font-size: 26px; font-weight: bold; margin: 0px; line-height: 1.2;">
+        <p style="font-size: 16px; margin-bottom: 5px;">Contrib. Margin ($)</p>
+        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1;">
             ${contribution_margin_dollar:,.2f} 
-            <span style="color: {cm_color}; font-size: 22px; margin-left: 8px;">{contribution_margin_percent:.1f}%</span>
+            <span style="color: {cm_color}; font-size: 28px; margin-left: 8px;">{contribution_margin_percent:.1f}%</span>
         </p>
     </div>
 """, unsafe_allow_html=True)
+
+# Added Extra Spacing here
+st.markdown("<br><br>", unsafe_allow_html=True)
 
 st.markdown("### Cost Breakdown Table")
 
