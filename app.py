@@ -82,7 +82,13 @@ with st.sidebar:
     
     # Standard Inputs for Sec 1
     units = st.number_input("Quantity", min_value=12, value=144, step=1)
-    blank_price = st.number_input("Blank Garment Cost ($)", value=3.33)
+    
+    # Updated Blank Price with Helper Link
+    blank_price = st.number_input(
+        "Blank Garment Cost ($)", 
+        value=3.33,
+        help="Find prices on [ACC](https://www.orderacc.com)"
+    )
     
     # --- SECTION 2 ---
     st.header("2. Print Locations")
@@ -161,14 +167,14 @@ with retail_container:
         )
         
         # --- NEW BASELINE TARGETS ---
-        target_gm_percent = 50.0 # Updated from 54%
-        target_cm_percent = 25.0 # Updated from 24%
+        target_gm_percent = 50.0 
+        target_cm_percent = 25.0 
         
         # If user selected CM Only, show input to adjust the CM target
         if optimization_strategy == "Contribution Margin Only":
             target_cm_percent = st.number_input(
                 "Target Contribution Margin (%)", 
-                value=25.0, # Updated Default
+                value=25.0,
                 step=1.0,
                 format="%.1f"
             )
