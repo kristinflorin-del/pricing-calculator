@@ -77,7 +77,7 @@ with st.sidebar:
     flash_ls = calculate_flash(screens_ls)
     total_flash = flash_f + flash_b + flash_rs + flash_ls
     
-    st.info(f"Total Screens: {total_screens} | Auto-Flash Cost: ${total_flash:.2f}")
+    st.info(f"Total Screens: {total_screens} | Flash Cost: ${total_flash:.2f}")
 
     # --- SECTION 3: SETUP & FEES ---
     st.header("3. Setup & Fees")
