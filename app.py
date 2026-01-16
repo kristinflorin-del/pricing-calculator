@@ -4,6 +4,34 @@ import pandas as pd
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="Print Cost Calculator 2026", layout="wide")
 
+# --- CSS HACK: FORCE DARK/BLACK THEME ---
+# This block forces the background to Black (#000000) and text to White
+# without needing a config.toml file.
+st.markdown("""
+    <style>
+        /* Main Background */
+        .stApp {
+            background-color: #000000;
+            color: #FAFAFA;
+        }
+        /* Sidebar Background */
+        [data-testid="stSidebar"] {
+            background-color: #111111;
+        }
+        /* Inputs & Text Boxes */
+        .stTextInput > div > div > input {
+            color: #FAFAFA;
+        }
+        .stNumberInput > div > div > input {
+            color: #FAFAFA;
+        }
+        /* General Text */
+        p, h1, h2, h3, label {
+            color: #FAFAFA !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 st.title("👕 Wholesale Price & Margin Calculator")
 st.markdown("Based on Screen Print Price List")
 st.markdown("---")
@@ -203,8 +231,8 @@ col_res1, col_res2, col_res3 = st.columns(3)
 # 1. Wholesale Price (Big Font)
 col_res1.markdown(f"""
     <div style="text-align: left;">
-        <p style="font-size: 16px; margin-bottom: 5px;">Wholesale Price (50% Retail)</p>
-        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1;">
+        <p style="font-size: 16px; margin-bottom: 5px; color: #FAFAFA;">Wholesale Price (50% Retail)</p>
+        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1; color: #FAFAFA;">
             ${wholesale_price:,.2f}
         </p>
     </div>
@@ -213,8 +241,8 @@ col_res1.markdown(f"""
 # 2. Gross Margin (Big Font + Color)
 col_res2.markdown(f"""
     <div style="text-align: left;">
-        <p style="font-size: 16px; margin-bottom: 5px;">Gross Margin ($)</p>
-        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1;">
+        <p style="font-size: 16px; margin-bottom: 5px; color: #FAFAFA;">Gross Margin ($)</p>
+        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1; color: #FAFAFA;">
             ${gross_margin_dollar:,.2f} 
             <span style="color: {gm_color}; font-size: 28px; margin-left: 8px;">{gross_margin_percent:.1f}%</span>
         </p>
@@ -224,8 +252,8 @@ col_res2.markdown(f"""
 # 3. Contribution Margin (Big Font + Color)
 col_res3.markdown(f"""
     <div style="text-align: left;">
-        <p style="font-size: 16px; margin-bottom: 5px;">Contrib. Margin ($)</p>
-        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1;">
+        <p style="font-size: 16px; margin-bottom: 5px; color: #FAFAFA;">Contrib. Margin ($)</p>
+        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1; color: #FAFAFA;">
             ${contribution_margin_dollar:,.2f} 
             <span style="color: {cm_color}; font-size: 28px; margin-left: 8px;">{contribution_margin_percent:.1f}%</span>
         </p>
