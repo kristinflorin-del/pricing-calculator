@@ -95,15 +95,14 @@ with st.sidebar:
     )
     # --- LOCKED SCREEN LOGIC END ---
     
-    # --- LOCKED FLEECE LOGIC START ---
-    is_fleece = st.checkbox("Is Fleece?")
+    # --- LOCKED FLEECE LOGIC START (Updated to Toggle) ---
+    is_fleece = st.toggle("Is the product fleece?", value=False)
     
     if is_fleece:
         fleece_charge = 0.20
     else:
         fleece_charge = 0.00
         
-    # Read-only text input for fleece charge
     st.text_input(
         "Fleece Charge (Per Unit)",
         value=f"${fleece_charge:.2f}",
