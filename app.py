@@ -381,6 +381,8 @@ st.dataframe(
 
 with st.expander("Show detailed breakdown"):
     st.write(f"**Total Screen Fees:** ${total_screen_fees:.2f}")
-    st.write(f"**Auto-Calculated Flash Total:** ${total_flash:.2f}")
+    st.write(f"**Total Flash Fee:** ${total_flash:.2f}")
+    st.write(f"**Pre-Discount Print Per Unit Cost:** ${raw_print_cost_per_unit:.2f}")
+    st.write(f"**Quantity:** {units}")
     st.write(f"**Pre-Discount Print Total:** ${gross_print_run_cost:.2f}")
     st.write(f"**Discount Applied:** 12% (-${gross_print_run_cost - discounted_print_run_cost:.2f})")
