@@ -7,7 +7,7 @@ import streamlit.components.v1 as components
 st.set_page_config(
     page_title="Print Cost Calculator 2026", 
     layout="wide", 
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded" # <--- This forces it open by default
 )
 
 # --- CSS: SHARP LOGO ADAPTER (ROBUST VERSION) ---
@@ -195,7 +195,6 @@ with retail_container:
         
         # Logic 2: Find min Retail for CM > target (25% or user defined)
         # Wholesale > COGS / (1 - target - Var%)
-        # FIX: used 'total_var_expense_pct' instead of 'total_var_pct'
         cm_denom = (1.0 - (target_cm_percent / 100.0)) - total_var_expense_pct
         
         if cm_denom <= 0:
