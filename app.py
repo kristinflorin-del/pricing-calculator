@@ -1,34 +1,18 @@
 import streamlit as st
 import pandas as pd
+import math
 
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="Print Cost Calculator 2026", layout="wide")
 
 # --- CSS HACK: FORCE DARK/BLACK THEME ---
-# This block forces the background to Black (#000000) and text to White
-# without needing a config.toml file.
 st.markdown("""
     <style>
-        /* Main Background */
-        .stApp {
-            background-color: #000000;
-            color: #FAFAFA;
-        }
-        /* Sidebar Background */
-        [data-testid="stSidebar"] {
-            background-color: #111111;
-        }
-        /* Inputs & Text Boxes */
-        .stTextInput > div > div > input {
-            color: #FAFAFA;
-        }
-        .stNumberInput > div > div > input {
-            color: #FAFAFA;
-        }
-        /* General Text */
-        p, h1, h2, h3, label {
-            color: #FAFAFA !important;
-        }
+        .stApp { background-color: #000000; color: #FAFAFA; }
+        [data-testid="stSidebar"] { background-color: #111111; }
+        .stTextInput > div > div > input { color: #FAFAFA; }
+        .stNumberInput > div > div > input { color: #FAFAFA; }
+        p, h1, h2, h3, label { color: #FAFAFA !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -39,17 +23,9 @@ st.markdown("---")
 # --- 2. PRICING LOGIC ---
 
 def get_price_from_matrix(units, colors):
-    """
-    Looks up the exact price from the 'Sans Price List' matrix.
-    """
-    if units < 12:
-        return 0.0
-    if colors == 0:
-        return 0.0
-        
+    if units < 12: return 0.0
+    if colors == 0: return 0.0
     quantities = [12, 24, 48, 72, 144, 288, 576, 1200, 5000, 10000, 20000]
-    
-    # 2026 Pricing Matrix
     pricing = {
         1: {12: 3.2, 24: 2.9, 48: 2.55, 72: 2.35, 144: 2.1, 288: 2.0, 576: 1.8, 1200: 1.55, 5000: 1.45, 10000: 1.4, 20000: 1.35},
         2: {12: 3.85, 24: 3.45, 48: 2.9, 72: 2.55, 144: 2.35, 288: 2.1, 576: 1.9, 1200: 1.65, 5000: 1.9, 10000: 1.8, 20000: 1.65},
@@ -59,230 +35,4 @@ def get_price_from_matrix(units, colors):
         6: {12: 6.85, 24: 6.4, 48: 6.05, 72: 5.65, 144: 5.3, 288: 4.3, 576: 4.2, 1200: 3.85, 5000: 3.55, 10000: 3.3, 20000: 3.2},
         7: {12: 7.5, 24: 6.85, 48: 6.75, 72: 6.3, 144: 5.95, 288: 5.4, 576: 5.2, 1200: 4.85, 5000: 4.4, 10000: 3.85, 20000: 3.65},
         8: {12: 7.85, 24: 7.3, 48: 6.95, 72: 6.75, 144: 6.4, 288: 5.85, 576: 5.5, 1200: 5.2, 5000: 4.85, 10000: 4.1, 20000: 3.85},
-        9: {12: 8.4, 24: 7.85, 48: 7.3, 72: 6.95, 144: 6.6, 288: 5.95, 576: 5.65, 1200: 5.4, 5000: 5.2, 10000: 4.3, 20000: 3.65},
-        10: {12: 9.15, 24: 8.4, 48: 8.1, 72: 8.25, 144: 7.95, 288: 7.15, 576: 6.85, 1200: 6.5, 5000: 5.4, 10000: 4.55, 20000: 3.55}
-    }
-    
-    applicable_break = 12
-    for q in quantities:
-        if units >= q:
-            applicable_break = q
-        else:
-            break
-    
-    c = min(colors, 10)
-    return pricing.get(c, {}).get(applicable_break, 0.0)
-
-def calculate_flash(screens):
-    # Formula: MAX(0, 0.1 * (Screens - 1))
-    return max(0.0, 0.1 * (screens - 1))
-
-# --- Helper Function for Colors ---
-def get_margin_color_style(value, is_gross=True):
-    """
-    Returns the CSS color code based on the user's specific ranges.
-    """
-    if value < 0:
-        return "#D9534F" # Red
-    
-    if is_gross:
-        # Gross Margin Rules
-        if value < 46:
-            return "#E67E22" # Orange
-        elif value <= 54:
-            return "#D4AC0D" # Gold/Yellow (Darker for readability)
-        else:
-            return "#28A745" # Green
-    else:
-        # Contribution Margin Rules
-        if value < 16:
-            return "#E67E22" # Orange
-        elif value <= 24:
-            return "#D4AC0D" # Gold/Yellow
-        else:
-            return "#28A745" # Green
-
-# --- 3. INPUTS SIDEBAR ---
-with st.sidebar:
-    # --- LOGO SECTION ---
-    # Looking for 'logo.png' in the same folder
-    try:
-        st.image("logo.png", use_container_width=True)
-        st.markdown("<br>", unsafe_allow_html=True)
-    except:
-        # Fallback if they haven't saved the file yet
-        st.warning("⚠️ Logo not found. Please save your file as 'logo.png' in this folder.")
-        st.markdown("<br>", unsafe_allow_html=True)
-
-    # --- SECTION 1: ORDER DETAILS ---
-    st.header("1. Order Details")
-    
-    # Swapped Order: Retail Price FIRST
-    retail_price = st.number_input("Retail Price ($)", value=36.00)
-    
-    # Swapped Order: Quantity SECOND
-    units = st.number_input("Quantity", min_value=12, value=144, step=1)
-    
-    blank_price = st.number_input("Blank Garment Cost ($)", value=3.33)
-    
-    # --- SECTION 2: PRINT LOCATIONS ---
-    st.header("2. Print Locations")
-    
-    screens_f = st.number_input("Screens Front", 0, 10, 3)
-    screens_b = st.number_input("Screens Back", 0, 10, 0)
-    screens_rs = st.number_input("Screens Right Sleeve", 0, 10, 0)
-    screens_ls = st.number_input("Screens Left Sleeve", 0, 10, 0)
-    
-    total_screens = screens_f + screens_b + screens_rs + screens_ls
-    
-    flash_f = calculate_flash(screens_f)
-    flash_b = calculate_flash(screens_b)
-    flash_rs = calculate_flash(screens_rs)
-    flash_ls = calculate_flash(screens_ls)
-    total_flash = flash_f + flash_b + flash_rs + flash_ls
-    
-    st.info(f"Total Screens: {total_screens} | Flash Cost: ${total_flash:.2f}")
-
-    # --- SECTION 3: SETUP & FEES ---
-    st.header("3. Setup & Fees")
-    
-    is_reorder = st.toggle("Is this a Reorder?", value=False)
-    
-    if is_reorder:
-        if units > 144:
-            calculated_screen_price = 0.0
-            lock_msg = "Reorder >144 pcs: Free"
-        else:
-            calculated_screen_price = 15.0
-            lock_msg = "Reorder <145 pcs: $15"
-    else:
-        calculated_screen_price = 23.0
-        lock_msg = "New Order Standard"
-        
-    st.text_input(
-        f"Price Per Screen - {lock_msg}", 
-        value=f"${calculated_screen_price:.2f}",
-        disabled=True
-    )
-    
-    is_fleece = st.toggle("Is the product fleece?", value=False)
-    
-    if is_fleece:
-        fleece_charge = 0.20
-    else:
-        fleece_charge = 0.00
-        
-    st.text_input(
-        "Fleece Charge (Per Unit)",
-        value=f"${fleece_charge:.2f}",
-        disabled=True
-    )
-
-    # --- SECTION 4: VARIABLE EXPENSES ---
-    st.header("4. Variable Expenses (%)")
-    
-    ve_rebates = st.number_input("Buyer Rebates %", value=2.5) / 100
-    ve_royalties = st.number_input("Licensing Royalties %", value=18.0) / 100
-    ve_commissions = st.number_input("Sales Commissions %", value=4.4) / 100
-    ve_freelance = st.number_input("Freelance Artist %", value=0.0) / 100
-
-# --- 4. CALCULATIONS ---
-
-use_auto_pricing = st.toggle("Use Automated Screen Print Price List Lookup?", value=True)
-
-if use_auto_pricing:
-    cost_front = get_price_from_matrix(units, screens_f)
-    cost_back = get_price_from_matrix(units, screens_b)
-    cost_rs = get_price_from_matrix(units, screens_rs)
-    cost_ls = get_price_from_matrix(units, screens_ls)
-else:
-    st.warning("Manual Mode Active")
-    col1, col2, col3, col4 = st.columns(4)
-    cost_front = col1.number_input("Print Cost Front", value=3.10)
-    cost_back = col2.number_input("Print Cost Back", value=2.35)
-    cost_rs = col3.number_input("Print Cost R.Sleeve", value=3.80)
-    cost_ls = col4.number_input("Print Cost L.Sleeve", value=0.00)
-
-# --- 5. FINAL MATH ---
-
-raw_print_cost_per_unit = cost_front + cost_back + cost_rs + cost_ls + total_flash
-total_screen_fees = total_screens * calculated_screen_price
-discount_percent = 0.12
-gross_print_run_cost = (raw_print_cost_per_unit * units) + total_screen_fees
-discounted_print_run_cost = gross_print_run_cost * (1 - discount_percent)
-final_print_cost_per_unit = discounted_print_run_cost / units
-vas_cost = 1.60
-total_cogs = final_print_cost_per_unit + blank_price + vas_cost + fleece_charge
-wholesale_price = retail_price / 2
-gross_margin_dollar = wholesale_price - total_cogs
-gross_margin_percent = (gross_margin_dollar / wholesale_price) * 100
-
-total_var_expense_pct = ve_rebates + ve_royalties + ve_commissions + ve_freelance
-var_expenses_dollar = wholesale_price * total_var_expense_pct
-contribution_margin_dollar = gross_margin_dollar - var_expenses_dollar
-contribution_margin_percent = (contribution_margin_dollar / wholesale_price) * 100
-
-# --- 6. DISPLAY RESULTS ---
-
-st.header("Results Summary")
-
-gm_color = get_margin_color_style(gross_margin_percent, is_gross=True)
-cm_color = get_margin_color_style(contribution_margin_percent, is_gross=False)
-
-col_res1, col_res2, col_res3 = st.columns(3)
-
-# 1. Wholesale Price (Big Font)
-col_res1.markdown(f"""
-    <div style="text-align: left;">
-        <p style="font-size: 16px; margin-bottom: 5px; color: #FAFAFA;">Wholesale Price (50% Retail)</p>
-        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1; color: #FAFAFA;">
-            ${wholesale_price:,.2f}
-        </p>
-    </div>
-""", unsafe_allow_html=True)
-
-# 2. Gross Margin (Big Font + Color)
-col_res2.markdown(f"""
-    <div style="text-align: left;">
-        <p style="font-size: 16px; margin-bottom: 5px; color: #FAFAFA;">Gross Margin ($)</p>
-        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1; color: #FAFAFA;">
-            ${gross_margin_dollar:,.2f} 
-            <span style="color: {gm_color}; font-size: 28px; margin-left: 8px;">{gross_margin_percent:.1f}%</span>
-        </p>
-    </div>
-""", unsafe_allow_html=True)
-
-# 3. Contribution Margin (Big Font + Color)
-col_res3.markdown(f"""
-    <div style="text-align: left;">
-        <p style="font-size: 16px; margin-bottom: 5px; color: #FAFAFA;">Contrib. Margin ($)</p>
-        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1; color: #FAFAFA;">
-            ${contribution_margin_dollar:,.2f} 
-            <span style="color: {cm_color}; font-size: 28px; margin-left: 8px;">{contribution_margin_percent:.1f}%</span>
-        </p>
-    </div>
-""", unsafe_allow_html=True)
-
-# Extra Spacing
-st.markdown("<br><br>", unsafe_allow_html=True)
-
-st.markdown("### Cost Breakdown Table")
-
-data = {
-    "Line Item": ["Price Charging", "Print Cost (with 12% disc)", "Blank Price", "VAS", "Fleece Charge", "TOTAL COGS"],
-    "Per Unit": [wholesale_price, final_print_cost_per_unit, blank_price, vas_cost, fleece_charge, total_cogs],
-    "Total Run": [wholesale_price * units, discounted_print_run_cost, blank_price * units, vas_cost * units, fleece_charge * units, total_cogs * units]
-}
-df = pd.DataFrame(data)
-
-st.dataframe(
-    df.style.format({"Per Unit": "${:.2f}", "Total Run": "${:,.2f}"}), 
-    use_container_width=True,
-    hide_index=True
-)
-
-with st.expander("Show detailed breakdown"):
-    st.write(f"**Total Screen Fees:** ${total_screen_fees:.2f}")
-    st.write(f"**Auto-Calculated Flash Total:** ${total_flash:.2f}")
-    st.write(f"**Pre-Discount Print Total:** ${gross_print_run_cost:.2f}")
-    st.write(f"**Discount Applied:** 12% (-${gross_print_run_cost - discounted_print_run_cost:.2f})")
+        9: {12:
