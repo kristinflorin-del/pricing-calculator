@@ -4,7 +4,6 @@ import pandas as pd
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="Print Cost Calculator 2026", layout="wide")
 
-# Updated Titles
 st.title("👕 Wholesale Price & Margin Calculator")
 st.markdown("Based on Screen Print Price List")
 st.markdown("---")
@@ -46,10 +45,34 @@ def get_price_from_matrix(units, colors):
     c = min(colors, 10)
     return pricing.get(c, {}).get(applicable_break, 0.0)
 
-# Automatic Flash Calculation Helper
 def calculate_flash(screens):
     # Formula: MAX(0, 0.1 * (Screens - 1))
     return max(0.0, 0.1 * (screens - 1))
+
+# --- Helper Function for Colors ---
+def get_margin_color_style(value, is_gross=True):
+    """
+    Returns the CSS color code based on the user's specific ranges.
+    """
+    if value < 0:
+        return "#D9534F" # Red
+    
+    if is_gross:
+        # Gross Margin Rules
+        if value < 46:
+            return "#E67E22" # Orange
+        elif value <= 54:
+            return "#D4AC0D" # Gold/Yellow (Darker for readability)
+        else:
+            return "#28A745" # Green
+    else:
+        # Contribution Margin Rules
+        if value < 16:
+            return "#E67E22" # Orange
+        elif value <= 24:
+            return "#D4AC0D" # Gold/Yellow
+        else:
+            return "#28A745" # Green
 
 # --- 3. INPUTS SIDEBAR ---
 with st.sidebar:
@@ -71,7 +94,6 @@ with st.sidebar:
     
     total_screens = screens_f + screens_b + screens_rs + screens_ls
     
-    # Auto-Calculate Flash Costs
     flash_f = calculate_flash(screens_f)
     flash_b = calculate_flash(screens_b)
     flash_rs = calculate_flash(screens_rs)
@@ -102,7 +124,6 @@ with st.sidebar:
         disabled=True
     )
     
-    # Fleece Logic
     is_fleece = st.toggle("Is the product fleece?", value=False)
     
     if is_fleece:
@@ -126,7 +147,6 @@ with st.sidebar:
 
 # --- 4. CALCULATIONS ---
 
-# Updated Toggle Label
 use_auto_pricing = st.toggle("Use Automated Screen Print Price List Lookup?", value=True)
 
 if use_auto_pricing:
@@ -144,30 +164,18 @@ else:
 
 # --- 5. FINAL MATH ---
 
-# 1. Base Print Cost Sum
 raw_print_cost_per_unit = cost_front + cost_back + cost_rs + cost_ls + total_flash
-
-# 2. Screen Fees (Using the calculated variable directly)
 total_screen_fees = total_screens * calculated_screen_price
-
-# 3. Discount Logic
 discount_percent = 0.12
 gross_print_run_cost = (raw_print_cost_per_unit * units) + total_screen_fees
 discounted_print_run_cost = gross_print_run_cost * (1 - discount_percent)
-
-# 4. Final Per Unit Print Cost
 final_print_cost_per_unit = discounted_print_run_cost / units
-
-# 5. COGS
 vas_cost = 1.60
 total_cogs = final_print_cost_per_unit + blank_price + vas_cost + fleece_charge
-
-# 6. Margins
 wholesale_price = retail_price / 2
 gross_margin_dollar = wholesale_price - total_cogs
 gross_margin_percent = (gross_margin_dollar / wholesale_price) * 100
 
-# Contribution Margin
 total_var_expense_pct = ve_rebates + ve_royalties + ve_commissions + ve_freelance
 var_expenses_dollar = wholesale_price * total_var_expense_pct
 contribution_margin_dollar = gross_margin_dollar - var_expenses_dollar
@@ -177,10 +185,36 @@ contribution_margin_percent = (contribution_margin_dollar / wholesale_price) * 1
 
 st.header("Results Summary")
 
+# Determine colors
+gm_color = get_margin_color_style(gross_margin_percent, is_gross=True)
+cm_color = get_margin_color_style(contribution_margin_percent, is_gross=False)
+
 col_res1, col_res2, col_res3 = st.columns(3)
+
+# 1. Wholesale Price (Standard Metric)
 col_res1.metric("Wholesale Price (50% Retail)", f"${wholesale_price:,.2f}")
-col_res2.metric("Gross Margin ($)", f"${gross_margin_dollar:,.2f}", f"{gross_margin_percent:.1f}%")
-col_res3.metric("Contrib. Margin ($)", f"${contribution_margin_dollar:,.2f}", f"{contribution_margin_percent:.1f}%")
+
+# 2. Gross Margin (Custom HTML for Color)
+col_res2.markdown(f"""
+    <div style="background-color: #f0f2f6; padding: 10px; border-radius: 5px; text-align: left;">
+        <p style="font-size: 14px; margin-bottom: 0px;">Gross Margin ($)</p>
+        <p style="font-size: 24px; font-weight: bold; margin: 0px;">
+            ${gross_margin_dollar:,.2f} 
+            <span style="color: {gm_color}; font-size: 20px; margin-left: 5px;">({gross_margin_percent:.1f}%)</span>
+        </p>
+    </div>
+""", unsafe_allow_html=True)
+
+# 3. Contribution Margin (Custom HTML for Color)
+col_res3.markdown(f"""
+    <div style="background-color: #f0f2f6; padding: 10px; border-radius: 5px; text-align: left;">
+        <p style="font-size: 14px; margin-bottom: 0px;">Contrib. Margin ($)</p>
+        <p style="font-size: 24px; font-weight: bold; margin: 0px;">
+            ${contribution_margin_dollar:,.2f} 
+            <span style="color: {cm_color}; font-size: 20px; margin-left: 5px;">({contribution_margin_percent:.1f}%)</span>
+        </p>
+    </div>
+""", unsafe_allow_html=True)
 
 st.markdown("### Cost Breakdown Table")
 
