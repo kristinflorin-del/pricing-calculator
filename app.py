@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components # Required for the new JS logic
 import pandas as pd
 import math
 
@@ -130,28 +131,35 @@ with st.sidebar:
     ve_commissions = st.number_input("Sales Commissions %", value=4.4) / 100
     ve_freelance = st.number_input("Freelance Artist %", value=0.0) / 100
 
-    # --- DONE BUTTON (Sidebar Footer) ---
+    # --- DONE BUTTON (Robust JS Solution) ---
     st.markdown("---")
     if st.button("Done"):
-        st.markdown(
-            """
-            <script>
-                // 1. Try the standard Collapse button (Desktop/Tablet)
-                var collapseBtn = window.parent.document.querySelector('[data-testid="stSidebarCollapseButton"]');
-                if (collapseBtn) {
-                    collapseBtn.click();
+        # We use a comprehensive Javascript injection that tries multiple selectors
+        # to find the "Close Sidebar" button on Desktop AND Mobile.
+        js = '''
+        <script>
+            var doc = window.parent.document;
+            
+            // Method 1: The standard Desktop collapse arrow
+            var btn = doc.querySelector('[data-testid="stSidebarCollapseButton"]');
+            if (btn) {
+                btn.click();
+            } else {
+                // Method 2: The Mobile "X" button (often has an aria-label)
+                var mobileBtn = doc.querySelector('button[aria-label="Close sidebar"]');
+                if (mobileBtn) {
+                    mobileBtn.click();
                 } else {
-                    // 2. Try the Mobile specific "Close" button (X icon)
-                    // Mobile views often use an 'aria-label' or a different class structure
-                    var mobileClose = window.parent.document.querySelector('button[aria-label="Close sidebar"]');
-                    if (mobileClose) {
-                        mobileClose.click();
+                    // Method 3: Fallback - grab the first button in the sidebar header
+                    var headerBtns = doc.querySelectorAll('[data-testid="stSidebar"] button');
+                    if (headerBtns.length > 0) {
+                        headerBtns[0].click();
                     }
                 }
-            </script>
-            """,
-            unsafe_allow_html=True
-        )
+            }
+        </script>
+        '''
+        components.html(js, height=0, width=0)
 
 # --- 4. CALCULATE COGS (For Retail Logic) ---
 
