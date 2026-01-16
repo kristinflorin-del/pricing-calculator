@@ -4,6 +4,7 @@ import pandas as pd
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="Print Cost Calculator 2026", layout="wide")
 
+# Updated Titles
 st.title("👕 Wholesale Price & Margin Calculator")
 st.markdown("Based on Screen Print Price List")
 st.markdown("---")
@@ -125,7 +126,8 @@ with st.sidebar:
 
 # --- 4. CALCULATIONS ---
 
-use_auto_pricing = st.toggle("Use Automated 'Sans Price List' Lookup?", value=True)
+# Updated Toggle Label
+use_auto_pricing = st.toggle("Use Automated Screen Print Price List Lookup?", value=True)
 
 if use_auto_pricing:
     cost_front = get_price_from_matrix(units, screens_f)
@@ -200,4 +202,3 @@ with st.expander("Show detailed breakdown"):
     st.write(f"**Auto-Calculated Flash Total:** ${total_flash:.2f}")
     st.write(f"**Pre-Discount Print Total:** ${gross_print_run_cost:.2f}")
     st.write(f"**Discount Applied:** 12% (-${gross_print_run_cost - discounted_print_run_cost:.2f})")
-
