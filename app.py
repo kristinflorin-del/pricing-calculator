@@ -151,23 +151,47 @@ with retail_container:
     use_suggested = st.toggle("Suggest Retail Price?", value=True)
     
     if use_suggested:
+        # Added Option: Choose Optimization Strategy
+        optimization_strategy = st.radio(
+            "Optimization Goal:",
+            ["Balanced (GM & CM)", "Contribution Margin Only"],
+            horizontal=False
+        )
+        
+        # Total Var Exp %
         total_var_pct = ve_rebates + ve_royalties + ve_commissions + ve_freelance
+        
+        # Logic 1: Find min Retail for GM > 54%
         min_retail_gm = (total_cogs / 0.46) * 2
+        
+        # Logic 2: Find min Retail for CM > 24%
         denom = 0.76 - total_var_pct
         if denom <= 0:
             min_retail_cm = 999.00 
         else:
             min_retail_cm = (total_cogs / denom) * 2
-        target_retail = max(min_retail_gm, min_retail_cm)
+        
+        # Determine Target based on selection
+        if optimization_strategy == "Contribution Margin Only":
+            # Only care about Green CM (ignore GM status)
+            target_retail = min_retail_cm
+            help_text = "Optimized for CM > 24% only (rounded to nearest $0.05)"
+        else:
+            # Must satisfy BOTH (original logic)
+            target_retail = max(min_retail_gm, min_retail_cm)
+            help_text = "Calculated to ensure GM > 54% AND CM > 24% (rounded to nearest $0.05)"
+            
+        # Round up to next 0.05 increment
         suggested_retail = math.ceil(target_retail / 0.05) * 0.05
         
         retail_price = st.number_input(
             "Suggested Retail Price ($)", 
             value=float(round(suggested_retail, 2)), 
             disabled=True,
-            help="Calculated to ensure GM > 54% and CM > 24% (Rounded to nearest $0.05)"
+            help=help_text
         )
     else:
+        # Standard manual input
         retail_price = st.number_input("Retail Price ($)", value=36.00)
 
 # --- 6. FINAL MARGIN MATH ---
