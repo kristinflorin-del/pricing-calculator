@@ -88,12 +88,13 @@ with st.sidebar:
         calculated_screen_price = 23.0
         lock_msg = "New Order Standard"
         
-    # DISABLED input (User cannot edit, but can see the value)
-    price_per_screen = st.number_input(
-        f"Price Per Screen ($) - {lock_msg}", 
-        value=calculated_screen_price, 
+    # CHANGE: Using st.text_input instead of st.number_input removes the +/- buttons
+    st.text_input(
+        f"Price Per Screen - {lock_msg}", 
+        value=f"${calculated_screen_price:.2f}", # Formatted as currency string
         disabled=True
     )
+    # Note: We now use the variable 'calculated_screen_price' directly in the math below
     # --- LOCKED SCREEN LOGIC END ---
     
     is_fleece = st.checkbox("Is Fleece?")
@@ -132,8 +133,8 @@ with st.expander("Variable Expenses (%)"):
 # 1. Base Print Cost Sum
 raw_print_cost_per_unit = cost_front + cost_back + cost_rs + cost_ls + total_flash
 
-# 2. Screen Fees
-total_screen_fees = total_screens * price_per_screen
+# 2. Screen Fees (Using the calculated variable directly)
+total_screen_fees = total_screens * calculated_screen_price
 
 # 3. Discount Logic
 discount_percent = 0.12
