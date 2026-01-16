@@ -10,23 +10,26 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS: SHARP LOGO ADAPTER ---
+# --- CSS: SHARP LOGO ADAPTER (ROBUST VERSION) ---
 st.markdown("""
     <style>
-        /* 1. Default (Dark Mode): Keep logo White (No Filter) */
+        /* BASE RULE: Light Mode (Default) */
+        /* By default, we invert the White logo to turn it BLACK. */
         [data-testid="stSidebar"] img {
-            transition: filter 0.3s ease; /* Smooth transition when toggling themes */
+            transition: filter 0.3s ease;
+            filter: invert(1) brightness(0); /* Forces White -> Black */
         }
 
-        /* 2. Light Mode (Manual): Invert White Logo to Black */
-        [data-theme="light"] [data-testid="stSidebar"] img {
-            filter: invert(1) brightness(0); /* Turns white to pure black */
+        /* OVERRIDE: Dark Mode */
+        /* When Streamlit is in Dark Mode, remove the filter so it stays WHITE. */
+        [data-theme="dark"] [data-testid="stSidebar"] img {
+            filter: none; /* Stays original White */
         }
-
-        /* 3. Light Mode (System Auto): Invert White Logo to Black */
-        @media (prefers-color-scheme: light) {
-            [data-theme="auto"] [data-testid="stSidebar"] img {
-                filter: invert(1) brightness(0);
+        
+        /* FALLBACK: System Preference Dark Mode */
+        @media (prefers-color-scheme: dark) {
+            [data-testid="stSidebar"] img {
+                filter: none; /* Stays original White */
             }
         }
     </style>
