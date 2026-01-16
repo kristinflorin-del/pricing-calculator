@@ -69,10 +69,12 @@ def calculate_flash(screens):
 def get_margin_color_style(value, is_gross=True):
     if value < 0: return "red"
     if is_gross:
+        # GM Logic: < 46 Orange, < 50 Yellow, >= 50 Green
         if value < 46: return "orange" 
         elif value < 50: return "#D4AC0D" # Dark Gold
         else: return "green" 
     else:
+        # CM Logic: < 16 Orange, < 25 Yellow, >= 25 Green
         if value < 16: return "orange" 
         elif value < 25: return "#D4AC0D" 
         else: return "green" 
@@ -287,38 +289,7 @@ col_res4.markdown(f"""
 
 st.markdown("---")
 
-# --- 7. NEW VISUAL BREAKDOWN ---
-st.subheader("Visual Breakdown: Where is the money going?")
-
-# Prepare Data for Chart
-chart_data = pd.DataFrame({
-    "Cost Component": ["Blank Garment", "Print & Finish", "Royalties & Comm.", "Net Margin"],
-    "Value": [
-        blank_price, 
-        (final_print_cost_per_unit + vas_cost + fleece_charge), # Grouping Print/VAS/Fleece
-        var_expenses_dollar,
-        contribution_margin_dollar
-    ]
-})
-
-# Create Donut Chart
-fig = px.pie(
-    chart_data, 
-    values="Value", 
-    names="Cost Component", 
-    hole=0.4, # Makes it a Donut
-    color_discrete_sequence=px.colors.qualitative.Pastel # Nice colors
-)
-fig.update_traces(textinfo='percent+label') # Show labels clearly
-fig.update_layout(height=400, margin=dict(t=0, b=0, l=0, r=0)) # Compact layout
-
-col_chart, col_spacer = st.columns([1, 1]) # Keep chart from being too huge
-with col_chart:
-    st.plotly_chart(fig, use_container_width=True)
-
-st.markdown("---")
-
-# --- 8. SCENARIO ANALYSIS ---
+# --- 8. SCENARIO ANALYSIS (MOVED UP) ---
 st.subheader("Scenario Analysis: CM% Pricing Tiers")
 
 scenario_cms = [25, 20, 15, 10, 5]
@@ -361,7 +332,39 @@ st.dataframe(
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-st.markdown("### Cost Breakdown Table")
+# --- 9. VISUAL BREAKDOWN (MOVED DOWN) ---
+st.subheader("Visual Breakdown: Where is the money going?")
+
+# Prepare Data for Chart
+chart_data = pd.DataFrame({
+    "Cost Component": ["Blank Garment", "Print & Finish", "Royalties & Comm.", "Net Margin"],
+    "Value": [
+        blank_price, 
+        (final_print_cost_per_unit + vas_cost + fleece_charge), # Grouping Print/VAS/Fleece
+        var_expenses_dollar,
+        contribution_margin_dollar
+    ]
+})
+
+# Create Donut Chart
+fig = px.pie(
+    chart_data, 
+    values="Value", 
+    names="Cost Component", 
+    hole=0.4, # Makes it a Donut
+    color_discrete_sequence=px.colors.qualitative.Pastel # Nice colors
+)
+fig.update_traces(textinfo='percent+label') # Show labels clearly
+fig.update_layout(height=400, margin=dict(t=0, b=0, l=0, r=0)) # Compact layout
+
+col_chart, col_spacer = st.columns([1, 1]) # Keep chart from being too huge
+with col_chart:
+    st.plotly_chart(fig, use_container_width=True)
+
+st.markdown("---")
+
+# --- 10. COST BREAKDOWN ---
+st.subheader("Cost Breakdown Table")
 
 data = {
     "Line Item": ["Price Charging", "Print Cost (with 12% disc)", "Blank Price", "VAS", "Fleece Charge", "TOTAL COGS"],
@@ -381,6 +384,3 @@ with st.expander("Show detailed breakdown"):
     st.write(f"**Auto-Calculated Flash Total:** ${total_flash:.2f}")
     st.write(f"**Pre-Discount Print Total:** ${gross_print_run_cost:.2f}")
     st.write(f"**Discount Applied:** 12% (-${gross_print_run_cost - discounted_print_run_cost:.2f})")
-
-# DEBUG CHECK
-st.write("✅ App Loaded Successfully (End of File Reached)")
