@@ -117,9 +117,12 @@ with st.sidebar:
     # --- SECTION 1: ORDER DETAILS ---
     st.header("1. Order Details")
     
+    # Swapped Order: Retail Price FIRST
+    retail_price = st.number_input("Retail Price ($)", value=36.00)
+    
+    # Swapped Order: Quantity SECOND
     units = st.number_input("Quantity", min_value=12, value=144, step=1)
     
-    retail_price = st.number_input("Retail Price ($)", value=36.00)
     blank_price = st.number_input("Blank Garment Cost ($)", value=3.33)
     
     # --- SECTION 2: PRINT LOCATIONS ---
