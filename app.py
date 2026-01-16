@@ -3,7 +3,12 @@ import pandas as pd
 import math
 
 # --- 1. SETUP & CONFIGURATION ---
-st.set_page_config(page_title="Print Cost Calculator 2026", layout="wide")
+# Added initial_sidebar_state="expanded" to keep the side panel open
+st.set_page_config(
+    page_title="Print Cost Calculator 2026", 
+    layout="wide", 
+    initial_sidebar_state="expanded"
+)
 
 # --- CSS HACK: FORCE DARK/BLACK THEME ---
 st.markdown("""
@@ -145,7 +150,6 @@ total_cogs = final_print_cost_per_unit + blank_price + vas_cost + fleece_charge
 # --- 5. RETAIL PRICE SUGGESTION LOGIC ---
 
 with retail_container:
-    # Changed Default to True, Changed Label
     use_suggested = st.toggle("Suggest Retail Price?", value=True)
     
     if use_suggested:
