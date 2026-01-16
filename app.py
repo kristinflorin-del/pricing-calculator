@@ -1,24 +1,33 @@
 import streamlit as st
 import pandas as pd
 import math
-import streamlit.components.v1 as components
 
 # --- 1. SETUP & CONFIGURATION ---
-# initial_sidebar_state="expanded" ensures it opens automatically on load
 st.set_page_config(
     page_title="Print Cost Calculator 2026", 
     layout="wide", 
     initial_sidebar_state="expanded"
 )
 
-# --- CSS HACK: FORCE DARK/BLACK THEME ---
+# --- CSS: SMART LOGO & REMOVED DARK MODE FORCE ---
+# We removed the code that forced the background to black.
+# We added a "Smart Logo" rule that makes the White logo turn Black in light mode.
 st.markdown("""
     <style>
-        .stApp { background-color: #000000; color: #FAFAFA; }
-        [data-testid="stSidebar"] { background-color: #111111; }
-        .stTextInput > div > div > input { color: #FAFAFA; }
-        .stNumberInput > div > div > input { color: #FAFAFA; }
-        p, h1, h2, h3, label { color: #FAFAFA !important; }
+        /* 1. Smart Logo Adapter */
+        /* This applies "difference" blending to the sidebar image (logo).
+           If background is White, Logo becomes Black.
+           If background is Dark, Logo becomes White. */
+        [data-testid="stSidebar"] img {
+            mix-blend-mode: difference;
+            filter: contrast(1.5); /* Boosts contrast slightly for better visibility */
+        }
+        
+        /* 2. Optional: Tweak Sidebar Background for better blend contrast */
+        /* This ensures the logo is always crisp, regardless of the user's theme */
+        [data-testid="stSidebar"] {
+            /* No fixed color here - we let Streamlit control the theme (Light/Dark) */
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -54,18 +63,20 @@ def get_price_from_matrix(units, colors):
 def calculate_flash(screens):
     return max(0.0, 0.1 * (screens - 1))
 
+# Updated Margin Colors for standard Light/Dark themes
 def get_margin_color_style(value, is_gross=True):
-    if value < 0: return "#D9534F"
+    # Using simple Bootstrap colors (Red, Yellow, Green) which work on both Light/Dark
+    if value < 0: return "red"
     if is_gross:
         # GM Logic: < 46 Orange, < 50 Yellow, >= 50 Green
-        if value < 46: return "#E67E22" # Orange
-        elif value < 50: return "#D4AC0D" # Gold/Yellow
-        else: return "#28A745" # Green
+        if value < 46: return "orange" 
+        elif value < 50: return "#D4AC0D" # Dark Gold
+        else: return "green" 
     else:
         # CM Logic: < 16 Orange, < 25 Yellow, >= 25 Green
-        if value < 16: return "#E67E22" # Orange
-        elif value < 25: return "#D4AC0D" # Gold/Yellow
-        else: return "#28A745" # Green
+        if value < 16: return "orange" 
+        elif value < 25: return "#D4AC0D" 
+        else: return "green" 
 
 # --- 3. INPUTS SIDEBAR ---
 with st.sidebar:
@@ -83,7 +94,6 @@ with st.sidebar:
     # Standard Inputs for Sec 1
     units = st.number_input("Quantity", min_value=12, value=144, step=1)
     
-    # Updated Blank Price with Helper Link
     blank_price = st.number_input(
         "Blank Garment Cost ($)", 
         value=3.33,
@@ -166,11 +176,9 @@ with retail_container:
             horizontal=False
         )
         
-        # --- NEW BASELINE TARGETS ---
         target_gm_percent = 50.0 
         target_cm_percent = 25.0 
         
-        # If user selected CM Only, show input to adjust the CM target
         if optimization_strategy == "Contribution Margin Only":
             target_cm_percent = st.number_input(
                 "Target Contribution Margin (%)", 
@@ -179,34 +187,26 @@ with retail_container:
                 format="%.1f"
             )
 
-        # Total Var Exp %
         total_var_pct = ve_rebates + ve_royalties + ve_commissions + ve_freelance
         
-        # Logic 1: Find min Retail for GM > target (50%)
-        # GM% = (Wholesale - COGS) / Wholesale > target_gm_percent
+        # Logic 1: Find min Retail for GM > target
         gm_denom = 1.0 - (target_gm_percent / 100.0)
         min_retail_gm = (total_cogs / gm_denom) * 2
         
-        # Logic 2: Find min Retail for CM > target (25% or user defined)
-        # Wholesale > COGS / (1 - target - Var%)
+        # Logic 2: Find min Retail for CM > target
         cm_denom = (1.0 - (target_cm_percent / 100.0)) - total_var_pct
-        
         if cm_denom <= 0:
             min_retail_cm = 999.00 
         else:
             min_retail_cm = (total_cogs / cm_denom) * 2
         
-        # Determine Target based on selection
         if optimization_strategy == "Contribution Margin Only":
-            # Only care about User's CM target (ignore GM status)
             target_retail = min_retail_cm
             help_text = f"Optimized for CM > {target_cm_percent}% only (rounded to nearest $0.05)"
         else:
-            # Must satisfy BOTH standard targets (GM > 50% and CM > 25%)
             target_retail = max(min_retail_gm, min_retail_cm)
             help_text = f"Calculated to ensure GM > {target_gm_percent}% AND CM > {target_cm_percent}% (rounded to nearest $0.05)"
             
-        # Round up to next 0.05 increment
         suggested_retail = math.ceil(target_retail / 0.05) * 0.05
         
         retail_price = st.number_input(
@@ -216,7 +216,6 @@ with retail_container:
             help=help_text
         )
     else:
-        # Standard manual input
         retail_price = st.number_input("Retail Price ($)", value=36.00)
 
 # --- 6. FINAL MARGIN MATH ---
@@ -241,8 +240,8 @@ col_res1, col_res2, col_res3 = st.columns(3)
 
 col_res1.markdown(f"""
     <div style="text-align: left;">
-        <p style="font-size: 16px; margin-bottom: 5px; color: #FAFAFA;">Wholesale Price (50% Retail)</p>
-        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1; color: #FAFAFA;">
+        <p style="font-size: 16px; margin-bottom: 5px; opacity: 0.8;">Wholesale Price (50% Retail)</p>
+        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1;">
             ${wholesale_price:,.2f}
         </p>
     </div>
@@ -250,8 +249,8 @@ col_res1.markdown(f"""
 
 col_res2.markdown(f"""
     <div style="text-align: left;">
-        <p style="font-size: 16px; margin-bottom: 5px; color: #FAFAFA;">Gross Margin ($)</p>
-        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1; color: #FAFAFA;">
+        <p style="font-size: 16px; margin-bottom: 5px; opacity: 0.8;">Gross Margin ($)</p>
+        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1;">
             ${gross_margin_dollar:,.2f} 
             <span style="color: {gm_color}; font-size: 28px; margin-left: 8px;">{gross_margin_percent:.1f}%</span>
         </p>
@@ -260,8 +259,8 @@ col_res2.markdown(f"""
 
 col_res3.markdown(f"""
     <div style="text-align: left;">
-        <p style="font-size: 16px; margin-bottom: 5px; color: #FAFAFA;">Contrib. Margin ($)</p>
-        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1; color: #FAFAFA;">
+        <p style="font-size: 16px; margin-bottom: 5px; opacity: 0.8;">Contrib. Margin ($)</p>
+        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1;">
             ${contribution_margin_dollar:,.2f} 
             <span style="color: {cm_color}; font-size: 28px; margin-left: 8px;">{contribution_margin_percent:.1f}%</span>
         </p>
