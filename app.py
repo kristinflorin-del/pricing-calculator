@@ -185,7 +185,6 @@ contribution_margin_percent = (contribution_margin_dollar / wholesale_price) * 1
 
 st.header("Results Summary")
 
-# Determine colors
 gm_color = get_margin_color_style(gross_margin_percent, is_gross=True)
 cm_color = get_margin_color_style(contribution_margin_percent, is_gross=False)
 
@@ -194,24 +193,24 @@ col_res1, col_res2, col_res3 = st.columns(3)
 # 1. Wholesale Price (Standard Metric)
 col_res1.metric("Wholesale Price (50% Retail)", f"${wholesale_price:,.2f}")
 
-# 2. Gross Margin (Custom HTML for Color)
+# 2. Gross Margin (No Box, Just Text)
 col_res2.markdown(f"""
-    <div style="background-color: #f0f2f6; padding: 10px; border-radius: 5px; text-align: left;">
+    <div style="text-align: left;">
         <p style="font-size: 14px; margin-bottom: 0px;">Gross Margin ($)</p>
-        <p style="font-size: 24px; font-weight: bold; margin: 0px;">
+        <p style="font-size: 26px; font-weight: bold; margin: 0px; line-height: 1.2;">
             ${gross_margin_dollar:,.2f} 
-            <span style="color: {gm_color}; font-size: 20px; margin-left: 5px;">({gross_margin_percent:.1f}%)</span>
+            <span style="color: {gm_color}; font-size: 22px; margin-left: 8px;">{gross_margin_percent:.1f}%</span>
         </p>
     </div>
 """, unsafe_allow_html=True)
 
-# 3. Contribution Margin (Custom HTML for Color)
+# 3. Contribution Margin (No Box, Just Text)
 col_res3.markdown(f"""
-    <div style="background-color: #f0f2f6; padding: 10px; border-radius: 5px; text-align: left;">
+    <div style="text-align: left;">
         <p style="font-size: 14px; margin-bottom: 0px;">Contrib. Margin ($)</p>
-        <p style="font-size: 24px; font-weight: bold; margin: 0px;">
+        <p style="font-size: 26px; font-weight: bold; margin: 0px; line-height: 1.2;">
             ${contribution_margin_dollar:,.2f} 
-            <span style="color: {cm_color}; font-size: 20px; margin-left: 5px;">({contribution_margin_percent:.1f}%)</span>
+            <span style="color: {cm_color}; font-size: 22px; margin-left: 8px;">{contribution_margin_percent:.1f}%</span>
         </p>
     </div>
 """, unsafe_allow_html=True)
