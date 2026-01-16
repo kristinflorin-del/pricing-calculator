@@ -4,8 +4,8 @@ import pandas as pd
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="Print Cost Calculator 2026", layout="wide")
 
-st.title("👕 Wholesale Cost & Margin Calculator (2026)")
-st.markdown("Based on Sans Price List & Wholesale Logic")
+st.title("👕 Wholesale Price & Margin Calculator")
+st.markdown("Based on Screen Print Price List")
 st.markdown("---")
 
 # --- 2. PRICING LOGIC ---
@@ -200,3 +200,4 @@ with st.expander("Show detailed breakdown"):
     st.write(f"**Auto-Calculated Flash Total:** ${total_flash:.2f}")
     st.write(f"**Pre-Discount Print Total:** ${gross_print_run_cost:.2f}")
     st.write(f"**Discount Applied:** 12% (-${gross_print_run_cost - discounted_print_run_cost:.2f})")
+
