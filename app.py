@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import math
+import streamlit.components.v1 as components
 
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(
@@ -9,24 +10,17 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS: SMART LOGO & REMOVED DARK MODE FORCE ---
-# We removed the code that forced the background to black.
-# We added a "Smart Logo" rule that makes the White logo turn Black in light mode.
+# --- CSS: SMART LOGO ADAPTER ---
 st.markdown("""
     <style>
         /* 1. Smart Logo Adapter */
-        /* This applies "difference" blending to the sidebar image (logo).
-           If background is White, Logo becomes Black.
-           If background is Dark, Logo becomes White. */
         [data-testid="stSidebar"] img {
             mix-blend-mode: difference;
-            filter: contrast(1.5); /* Boosts contrast slightly for better visibility */
-        }
-        
-        /* 2. Optional: Tweak Sidebar Background for better blend contrast */
-        /* This ensures the logo is always crisp, regardless of the user's theme */
-        [data-testid="stSidebar"] {
-            /* No fixed color here - we let Streamlit control the theme (Light/Dark) */
+            /* The brightness filter fixes the "dull white" issue in dark mode.
+               Dark Mode: (White - DarkGrey) = LightGrey * 3 -> Pure White.
+               Light Mode: (White - White) = Black * 3 -> Pure Black.
+            */
+            filter: brightness(3) saturate(0); 
         }
     </style>
 """, unsafe_allow_html=True)
@@ -63,17 +57,13 @@ def get_price_from_matrix(units, colors):
 def calculate_flash(screens):
     return max(0.0, 0.1 * (screens - 1))
 
-# Updated Margin Colors for standard Light/Dark themes
 def get_margin_color_style(value, is_gross=True):
-    # Using simple Bootstrap colors (Red, Yellow, Green) which work on both Light/Dark
     if value < 0: return "red"
     if is_gross:
-        # GM Logic: < 46 Orange, < 50 Yellow, >= 50 Green
         if value < 46: return "orange" 
         elif value < 50: return "#D4AC0D" # Dark Gold
         else: return "green" 
     else:
-        # CM Logic: < 16 Orange, < 25 Yellow, >= 25 Green
         if value < 16: return "orange" 
         elif value < 25: return "#D4AC0D" 
         else: return "green" 
@@ -189,21 +179,27 @@ with retail_container:
 
         total_var_pct = ve_rebates + ve_royalties + ve_commissions + ve_freelance
         
-        # Logic 1: Find min Retail for GM > target
+        # Logic 1: Find min Retail for GM > target (50%)
+        # GM% = (Wholesale - COGS) / Wholesale > target_gm_percent
         gm_denom = 1.0 - (target_gm_percent / 100.0)
         min_retail_gm = (total_cogs / gm_denom) * 2
         
-        # Logic 2: Find min Retail for CM > target
+        # Logic 2: Find min Retail for CM > target (25% or user defined)
+        # Wholesale > COGS / (1 - target - Var%)
         cm_denom = (1.0 - (target_cm_percent / 100.0)) - total_var_pct
+        
         if cm_denom <= 0:
             min_retail_cm = 999.00 
         else:
             min_retail_cm = (total_cogs / cm_denom) * 2
         
+        # Determine Target based on selection
         if optimization_strategy == "Contribution Margin Only":
+            # Only care about User's CM target (ignore GM status)
             target_retail = min_retail_cm
             help_text = f"Optimized for CM > {target_cm_percent}% only (rounded to nearest $0.05)"
         else:
+            # Must satisfy BOTH standard targets (GM > 50% and CM > 25%)
             target_retail = max(min_retail_gm, min_retail_cm)
             help_text = f"Calculated to ensure GM > {target_gm_percent}% AND CM > {target_cm_percent}% (rounded to nearest $0.05)"
             
@@ -216,6 +212,7 @@ with retail_container:
             help=help_text
         )
     else:
+        # Standard manual input
         retail_price = st.number_input("Retail Price ($)", value=36.00)
 
 # --- 6. FINAL MARGIN MATH ---
