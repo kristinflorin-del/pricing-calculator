@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import math
+import streamlit.components.v1 as components
 
 # --- 1. SETUP & CONFIGURATION ---
 # initial_sidebar_state="expanded" ensures it opens automatically on load
@@ -56,13 +57,15 @@ def calculate_flash(screens):
 def get_margin_color_style(value, is_gross=True):
     if value < 0: return "#D9534F"
     if is_gross:
-        if value < 46: return "#E67E22"
-        elif value <= 54: return "#D4AC0D"
-        else: return "#28A745"
+        # GM Logic: < 46 Orange, < 50 Yellow, >= 50 Green
+        if value < 46: return "#E67E22" # Orange
+        elif value < 50: return "#D4AC0D" # Gold/Yellow
+        else: return "#28A745" # Green
     else:
-        if value < 16: return "#E67E22"
-        elif value <= 24: return "#D4AC0D"
-        else: return "#28A745"
+        # CM Logic: < 16 Orange, < 25 Yellow, >= 25 Green
+        if value < 16: return "#E67E22" # Orange
+        elif value < 25: return "#D4AC0D" # Gold/Yellow
+        else: return "#28A745" # Green
 
 # --- 3. INPUTS SIDEBAR ---
 with st.sidebar:
@@ -157,15 +160,15 @@ with retail_container:
             horizontal=False
         )
         
-        # Default Targets
-        target_gm_percent = 54.0
-        target_cm_percent = 24.0 # Default
+        # --- NEW BASELINE TARGETS ---
+        target_gm_percent = 50.0 # Updated from 54%
+        target_cm_percent = 25.0 # Updated from 24%
         
         # If user selected CM Only, show input to adjust the CM target
         if optimization_strategy == "Contribution Margin Only":
             target_cm_percent = st.number_input(
                 "Target Contribution Margin (%)", 
-                value=24.0, 
+                value=25.0, # Updated Default
                 step=1.0,
                 format="%.1f"
             )
@@ -173,16 +176,12 @@ with retail_container:
         # Total Var Exp %
         total_var_pct = ve_rebates + ve_royalties + ve_commissions + ve_freelance
         
-        # Logic 1: Find min Retail for GM > target (default 54%)
+        # Logic 1: Find min Retail for GM > target (50%)
         # GM% = (Wholesale - COGS) / Wholesale > target_gm_percent
-        # Wholesale * (1 - target) = COGS
-        # Wholesale = COGS / (1 - target)
-        # Retail = (COGS / (1 - target)) * 2
-        
         gm_denom = 1.0 - (target_gm_percent / 100.0)
         min_retail_gm = (total_cogs / gm_denom) * 2
         
-        # Logic 2: Find min Retail for CM > target (user defined or 24%)
+        # Logic 2: Find min Retail for CM > target (25% or user defined)
         # Wholesale > COGS / (1 - target - Var%)
         cm_denom = (1.0 - (target_cm_percent / 100.0)) - total_var_pct
         
@@ -197,9 +196,9 @@ with retail_container:
             target_retail = min_retail_cm
             help_text = f"Optimized for CM > {target_cm_percent}% only (rounded to nearest $0.05)"
         else:
-            # Must satisfy BOTH standard targets (GM > 54% and CM > 24%)
+            # Must satisfy BOTH standard targets (GM > 50% and CM > 25%)
             target_retail = max(min_retail_gm, min_retail_cm)
-            help_text = "Calculated to ensure GM > 54% AND CM > 24% (rounded to nearest $0.05)"
+            help_text = f"Calculated to ensure GM > {target_gm_percent}% AND CM > {target_cm_percent}% (rounded to nearest $0.05)"
             
         # Round up to next 0.05 increment
         suggested_retail = math.ceil(target_retail / 0.05) * 0.05
