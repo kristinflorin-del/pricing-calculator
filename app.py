@@ -52,12 +52,17 @@ def calculate_flash(screens):
 
 # --- 3. INPUTS SIDEBAR ---
 with st.sidebar:
-    st.header("1. Job Specs")
-    # Updated Default: 144
-    units = st.number_input("Units (Quantity)", min_value=12, value=144, step=1)
+    # --- SECTION 1: ORDER DETAILS ---
+    st.header("1. Order Details")
     
+    units = st.number_input("Quantity", min_value=12, value=144, step=1)
+    
+    retail_price = st.number_input("Retail Price ($)", value=36.00)
+    blank_price = st.number_input("Blank Garment Cost ($)", value=3.33)
+    
+    # --- SECTION 2: PRINT LOCATIONS ---
     st.header("2. Print Locations")
-    # Updated Defaults: 3 Front, 0 Back, 0 Sleeve, 0 Sleeve
+    
     screens_f = st.number_input("Screens Front", 0, 10, 3)
     screens_b = st.number_input("Screens Back", 0, 10, 0)
     screens_rs = st.number_input("Screens Right Sleeve", 0, 10, 0)
@@ -74,9 +79,9 @@ with st.sidebar:
     
     st.info(f"Total Screens: {total_screens} | Auto-Flash Cost: ${total_flash:.2f}")
 
-    # --- LOCKED SCREEN LOGIC START ---
+    # --- SECTION 3: SETUP & FEES ---
     st.header("3. Setup & Fees")
-    # Updated Default: False (Toggled Off)
+    
     is_reorder = st.toggle("Is this a Reorder?", value=False)
     
     if is_reorder:
@@ -95,10 +100,8 @@ with st.sidebar:
         value=f"${calculated_screen_price:.2f}",
         disabled=True
     )
-    # --- LOCKED SCREEN LOGIC END ---
     
-    # --- LOCKED FLEECE LOGIC START ---
-    # Updated Default: False (Toggled Off)
+    # Fleece Logic
     is_fleece = st.toggle("Is the product fleece?", value=False)
     
     if is_fleece:
@@ -111,12 +114,14 @@ with st.sidebar:
         value=f"${fleece_charge:.2f}",
         disabled=True
     )
-    # --- LOCKED FLEECE LOGIC END ---
 
-    st.header("4. Product Cost")
-    # Updated Defaults: Retail $36.00, Blank $3.33
-    retail_price = st.number_input("Retail Price ($)", value=36.00)
-    blank_price = st.number_input("Blank Garment Price ($)", value=3.33)
+    # --- SECTION 4: VARIABLE EXPENSES ---
+    st.header("4. Variable Expenses (%)")
+    
+    ve_rebates = st.number_input("Buyer Rebates %", value=2.5) / 100
+    ve_royalties = st.number_input("Licensing Royalties %", value=18.0) / 100
+    ve_commissions = st.number_input("Sales Commissions %", value=4.4) / 100
+    ve_freelance = st.number_input("Freelance Artist %", value=0.0) / 100
 
 # --- 4. CALCULATIONS ---
 
@@ -134,14 +139,6 @@ else:
     cost_back = col2.number_input("Print Cost Back", value=2.35)
     cost_rs = col3.number_input("Print Cost R.Sleeve", value=3.80)
     cost_ls = col4.number_input("Print Cost L.Sleeve", value=0.00)
-
-# Variable Expenses
-with st.expander("Variable Expenses (%)"):
-    # Updated Defaults: Rebates 2.5%, Royalties 18%, Comm 4.4%, Artist 0%
-    ve_rebates = st.number_input("Buyer Rebates %", value=2.5) / 100
-    ve_royalties = st.number_input("Licensing Royalties %", value=18.0) / 100
-    ve_commissions = st.number_input("Sales Commissions %", value=4.4) / 100
-    ve_freelance = st.number_input("Freelance Artist %", value=0.0) / 100
 
 # --- 5. FINAL MATH ---
 
@@ -161,7 +158,6 @@ final_print_cost_per_unit = discounted_print_run_cost / units
 
 # 5. COGS
 vas_cost = 1.60
-# Fleece Charge is added here as a per-unit cost
 total_cogs = final_print_cost_per_unit + blank_price + vas_cost + fleece_charge
 
 # 6. Margins
