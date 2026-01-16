@@ -63,27 +63,33 @@ with st.sidebar:
     
     total_screens = screens_f + screens_b + screens_rs + screens_ls
     
-    # Auto-Calculate Flash Costs based on inputs
+    # Auto-Calculate Flash Costs
     flash_f = calculate_flash(screens_f)
     flash_b = calculate_flash(screens_b)
     flash_rs = calculate_flash(screens_rs)
     flash_ls = calculate_flash(screens_ls)
     total_flash = flash_f + flash_b + flash_rs + flash_ls
     
-    # Display the calculated flash to the user
     st.info(f"Total Screens: {total_screens} | Auto-Flash Cost: ${total_flash:.2f}")
 
+    # --- UPDATED SCREEN LOGIC START ---
     st.header("3. Setup & Fees")
     is_reorder = st.toggle("Is this a Reorder?", value=False)
     
-    if is_reorder and units < 145:
-        default_screen_price = 15.0
-        st.caption("Reorder < 145 pcs: $15/screen")
+    # Logic: New=23, Reorder>144=0, Reorder<145=15
+    if is_reorder:
+        if units > 144:
+            default_screen_price = 0.0
+            st.caption("Reorder (>144 pcs): $0/screen")
+        else:
+            default_screen_price = 15.0
+            st.caption("Reorder (<145 pcs): $15/screen")
     else:
         default_screen_price = 23.0
-        st.caption("Standard/New: $23/screen")
+        st.caption("New Order: $23/screen")
         
     price_per_screen = st.number_input("Price Per Screen ($)", value=default_screen_price)
+    # --- UPDATED SCREEN LOGIC END ---
     
     is_fleece = st.checkbox("Is Fleece?")
     fleece_charge = st.number_input("Fleece Charge ($)", value=0.0) if is_fleece else 0.0
@@ -118,7 +124,7 @@ with st.expander("Variable Expenses (%)"):
 
 # --- 5. FINAL MATH ---
 
-# 1. Base Print Cost Sum (Includes the Auto-Calculated Flash now)
+# 1. Base Print Cost Sum (Includes Auto-Flash)
 raw_print_cost_per_unit = cost_front + cost_back + cost_rs + cost_ls + total_flash
 
 # 2. Screen Fees
