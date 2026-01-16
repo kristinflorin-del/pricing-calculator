@@ -13,15 +13,15 @@ st.set_page_config(
 # --- CSS: SMART LOGO ADAPTER ---
 st.markdown("""
     <style>
-        /* SMART LOGO ADAPTER (High Contrast Fix) */
-        [data-testid="stSidebar"] img {
+        /* SMART LOGO ADAPTER */
+        [data-testid="stSidebar"] [data-testid="stImage"] img {
             mix-blend-mode: difference;
-            /* Nuclear Option for Brightness:
-               - We boost brightness by 5x (500%).
-               - In Light Mode: Black (0) * 5 = 0 (Stays Pure Black).
-               - In Dark Mode: Light Grey (200) * 5 = 1000 -> Caps at 255 (Pure Sharp White).
+            /* 1. brightness(3):  Lifts the "dull grey" produced by the dark sidebar math.
+               2. contrast(5):    Forces the lifted grey to snap to Pure White.
+                                  (And keeps the Black logo Pure Black in light mode).
+               3. saturate(0):    Removes any accidental color tinting.
             */
-            filter: brightness(5) grayscale(100%);
+            filter: brightness(3) contrast(5) saturate(0);
         }
     </style>
 """, unsafe_allow_html=True)
