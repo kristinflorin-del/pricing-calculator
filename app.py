@@ -151,33 +151,53 @@ with retail_container:
     use_suggested = st.toggle("Suggest Retail Price?", value=True)
     
     if use_suggested:
-        # Added Option: Choose Optimization Strategy
         optimization_strategy = st.radio(
             "Optimization Goal:",
             ["Balanced (GM & CM)", "Contribution Margin Only"],
             horizontal=False
         )
         
+        # Default Targets
+        target_gm_percent = 54.0
+        target_cm_percent = 24.0 # Default
+        
+        # If user selected CM Only, show input to adjust the CM target
+        if optimization_strategy == "Contribution Margin Only":
+            target_cm_percent = st.number_input(
+                "Target Contribution Margin (%)", 
+                value=24.0, 
+                step=1.0,
+                format="%.1f"
+            )
+
         # Total Var Exp %
         total_var_pct = ve_rebates + ve_royalties + ve_commissions + ve_freelance
         
-        # Logic 1: Find min Retail for GM > 54%
-        min_retail_gm = (total_cogs / 0.46) * 2
+        # Logic 1: Find min Retail for GM > target (default 54%)
+        # GM% = (Wholesale - COGS) / Wholesale > target_gm_percent
+        # Wholesale * (1 - target) = COGS
+        # Wholesale = COGS / (1 - target)
+        # Retail = (COGS / (1 - target)) * 2
         
-        # Logic 2: Find min Retail for CM > 24%
-        denom = 0.76 - total_var_pct
-        if denom <= 0:
+        gm_denom = 1.0 - (target_gm_percent / 100.0)
+        min_retail_gm = (total_cogs / gm_denom) * 2
+        
+        # Logic 2: Find min Retail for CM > target (user defined or 24%)
+        # Wholesale > COGS / (1 - target - Var%)
+        cm_denom = (1.0 - (target_cm_percent / 100.0)) - total_var_pct
+        
+        if cm_denom <= 0:
             min_retail_cm = 999.00 
         else:
-            min_retail_cm = (total_cogs / denom) * 2
+            min_retail_cm = (total_cogs / cm_denom) * 2
         
         # Determine Target based on selection
         if optimization_strategy == "Contribution Margin Only":
-            # Only care about Green CM (ignore GM status)
+            # Only care about User's CM target (ignore GM status)
             target_retail = min_retail_cm
-            help_text = "Optimized for CM > 24% only (rounded to nearest $0.05)"
+            help_text = f"Optimized for CM > {target_cm_percent}% only (rounded to nearest $0.05)"
         else:
-            # Must satisfy BOTH (original logic)
+            # Must satisfy BOTH standard targets (GM > 54% and CM > 24%)
             target_retail = max(min_retail_gm, min_retail_cm)
             help_text = "Calculated to ensure GM > 54% AND CM > 24% (rounded to nearest $0.05)"
             
