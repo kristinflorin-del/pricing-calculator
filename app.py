@@ -4,7 +4,6 @@ import math
 import streamlit.components.v1 as components
 
 # --- 1. SETUP & CONFIGURATION ---
-# initial_sidebar_state="expanded" ensures it opens automatically on load
 st.set_page_config(
     page_title="Print Cost Calculator 2026", 
     layout="wide", 
@@ -23,10 +22,6 @@ st.markdown("""
         /* SMART LOGO ADAPTER (High Contrast Fix) */
         [data-testid="stSidebar"] img {
             mix-blend-mode: difference;
-            /* 1. grayscale(100%): Removes any color shifting/tinting.
-               2. contrast(200%): Pushes light greys to White and dark greys to Black.
-               3. brightness(200%): Boosts the white intensity to ensure it pops.
-            */
             filter: grayscale(100%) contrast(200%) brightness(200%);
         }
     </style>
@@ -227,6 +222,8 @@ with retail_container:
 # --- 6. FINAL MARGIN MATH ---
 
 wholesale_price = retail_price / 2
+total_wholesale_revenue = wholesale_price * units # Calculated for the updated display
+
 gross_margin_dollar = wholesale_price - total_cogs
 gross_margin_percent = (gross_margin_dollar / wholesale_price) * 100
 
@@ -242,12 +239,13 @@ st.header("Results Summary")
 gm_color = get_margin_color_style(gross_margin_percent, is_gross=True)
 cm_color = get_margin_color_style(contribution_margin_percent, is_gross=False)
 
-col_res1, col_res2, col_res3 = st.columns(3)
+# UPDATED: Now using 4 columns to include Total Wholesale Price
+col_res1, col_res2, col_res3, col_res4 = st.columns(4)
 
 col_res1.markdown(f"""
     <div style="text-align: left;">
-        <p style="font-size: 16px; margin-bottom: 5px; opacity: 0.8;">Wholesale Price (50% Retail)</p>
-        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1;">
+        <p style="font-size: 14px; margin-bottom: 5px; opacity: 0.8;">Unit Wholesale Price<br>(50% Retail)</p>
+        <p style="font-size: 32px; font-weight: bold; margin: 0px; line-height: 1.1;">
             ${wholesale_price:,.2f}
         </p>
     </div>
@@ -255,20 +253,29 @@ col_res1.markdown(f"""
 
 col_res2.markdown(f"""
     <div style="text-align: left;">
-        <p style="font-size: 16px; margin-bottom: 5px; opacity: 0.8;">Gross Margin ($)</p>
-        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1;">
-            ${gross_margin_dollar:,.2f} 
-            <span style="color: {gm_color}; font-size: 28px; margin-left: 8px;">{gross_margin_percent:.1f}%</span>
+        <p style="font-size: 14px; margin-bottom: 5px; opacity: 0.8;">Total Wholesale<br>Price</p>
+        <p style="font-size: 32px; font-weight: bold; margin: 0px; line-height: 1.1;">
+            ${total_wholesale_revenue:,.2f}
         </p>
     </div>
 """, unsafe_allow_html=True)
 
 col_res3.markdown(f"""
     <div style="text-align: left;">
-        <p style="font-size: 16px; margin-bottom: 5px; opacity: 0.8;">Contrib. Margin ($)</p>
-        <p style="font-size: 42px; font-weight: bold; margin: 0px; line-height: 1.1;">
+        <p style="font-size: 14px; margin-bottom: 5px; opacity: 0.8;">Gross Margin<br>($)</p>
+        <p style="font-size: 32px; font-weight: bold; margin: 0px; line-height: 1.1;">
+            ${gross_margin_dollar:,.2f} 
+            <span style="color: {gm_color}; font-size: 20px; display: block;">{gross_margin_percent:.1f}%</span>
+        </p>
+    </div>
+""", unsafe_allow_html=True)
+
+col_res4.markdown(f"""
+    <div style="text-align: left;">
+        <p style="font-size: 14px; margin-bottom: 5px; opacity: 0.8;">Contrib. Margin<br>($)</p>
+        <p style="font-size: 32px; font-weight: bold; margin: 0px; line-height: 1.1;">
             ${contribution_margin_dollar:,.2f} 
-            <span style="color: {cm_color}; font-size: 28px; margin-left: 8px;">{contribution_margin_percent:.1f}%</span>
+            <span style="color: {cm_color}; font-size: 20px; display: block;">{contribution_margin_percent:.1f}%</span>
         </p>
     </div>
 """, unsafe_allow_html=True)
