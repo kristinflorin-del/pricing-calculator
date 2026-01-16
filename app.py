@@ -148,7 +148,7 @@ with retail_container:
     use_suggested = st.toggle("Suggest Retail Price for Green Margins?", value=False)
     
     if use_suggested:
-        # We need lowest round $ where:
+        # We need lowest price where:
         # 1. Gross Margin > 54%
         # 2. Contrib Margin > 24%
         
@@ -176,14 +176,15 @@ with retail_container:
         # We need the higher of the two requirements to satisfy BOTH
         target_retail = max(min_retail_gm, min_retail_cm)
         
-        # Round up to next whole dollar (Lowest Round $)
-        suggested_retail = math.ceil(target_retail)
+        # Round up to next 0.05 increment
+        # Example: 32.23 -> 32.23/0.05 = 644.6 -> ceil(644.6)=645 -> 645*0.05 = 32.25
+        suggested_retail = math.ceil(target_retail / 0.05) * 0.05
         
         retail_price = st.number_input(
             "Suggested Retail Price ($)", 
-            value=float(suggested_retail), 
+            value=float(round(suggested_retail, 2)), 
             disabled=True,
-            help="Calculated to ensure GM > 54% and CM > 24%"
+            help="Calculated to ensure GM > 54% and CM > 24% (Rounded to nearest $0.05)"
         )
     else:
         # Standard manual input
