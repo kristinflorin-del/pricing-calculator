@@ -8,25 +8,20 @@ st.title("👕 Wholesale Cost & Margin Calculator (2026)")
 st.markdown("Based on Sans Price List & Wholesale Logic")
 st.markdown("---")
 
-# --- 2. PRICING LOGIC (EXTRACTED FROM YOUR FILE) ---
+# --- 2. PRICING LOGIC ---
 
 def get_price_from_matrix(units, colors):
     """
     Looks up the exact price from the 'Sans Price List' matrix.
-    Logic: Finds the highest quantity bracket that 'units' qualifies for.
     """
     if units < 12:
-        return 0.0 # Standard minimum is usually 12
-    
+        return 0.0
     if colors == 0:
         return 0.0
         
-    # Quantity Breaks (Column Headers from your sheet)
-    # The logic finds the largest bracket <= your unit count.
     quantities = [12, 24, 48, 72, 144, 288, 576, 1200, 5000, 10000, 20000]
     
-    # 2026 Pricing Matrix (Extracted from your file)
-    # {Color_Count: {Qty_Break: Price}}
+    # 2026 Pricing Matrix
     pricing = {
         1: {12: 3.2, 24: 2.9, 48: 2.55, 72: 2.35, 144: 2.1, 288: 2.0, 576: 1.8, 1200: 1.55, 5000: 1.45, 10000: 1.4, 20000: 1.35},
         2: {12: 3.85, 24: 3.45, 48: 2.9, 72: 2.55, 144: 2.35, 288: 2.1, 576: 1.9, 1200: 1.65, 5000: 1.9, 10000: 1.8, 20000: 1.65},
@@ -40,19 +35,20 @@ def get_price_from_matrix(units, colors):
         10: {12: 9.15, 24: 8.4, 48: 8.1, 72: 8.25, 144: 7.95, 288: 7.15, 576: 6.85, 1200: 6.5, 5000: 5.4, 10000: 4.55, 20000: 3.55}
     }
     
-    # Logic: Find the highest break that is <= units
-    # e.g., if units=250, applicable break is 144.
     applicable_break = 12
     for q in quantities:
         if units >= q:
             applicable_break = q
         else:
             break
-            
-    # Cap colors at 10 (or handle >10 logic if needed)
-    c = min(colors, 10)
     
+    c = min(colors, 10)
     return pricing.get(c, {}).get(applicable_break, 0.0)
+
+# Automatic Flash Calculation Helper
+def calculate_flash(screens):
+    # Formula: MAX(0, 0.1 * (Screens - 1))
+    return max(0.0, 0.1 * (screens - 1))
 
 # --- 3. INPUTS SIDEBAR ---
 with st.sidebar:
@@ -66,10 +62,18 @@ with st.sidebar:
     screens_ls = st.number_input("Screens Left Sleeve", 0, 10, 0)
     
     total_screens = screens_f + screens_b + screens_rs + screens_ls
-    st.info(f"Total Screens: {total_screens}")
+    
+    # Auto-Calculate Flash Costs based on inputs
+    flash_f = calculate_flash(screens_f)
+    flash_b = calculate_flash(screens_b)
+    flash_rs = calculate_flash(screens_rs)
+    flash_ls = calculate_flash(screens_ls)
+    total_flash = flash_f + flash_b + flash_rs + flash_ls
+    
+    # Display the calculated flash to the user
+    st.info(f"Total Screens: {total_screens} | Auto-Flash Cost: ${total_flash:.2f}")
 
     st.header("3. Setup & Fees")
-    # Toggle for Reorder Pricing logic found in your sheet
     is_reorder = st.toggle("Is this a Reorder?", value=False)
     
     if is_reorder and units < 145:
@@ -90,7 +94,6 @@ with st.sidebar:
 
 # --- 4. CALCULATIONS ---
 
-# Toggle: Manual Entry vs. Automatic Lookup
 use_auto_pricing = st.toggle("Use Automated 'Sans Price List' Lookup?", value=True)
 
 if use_auto_pricing:
@@ -106,16 +109,6 @@ else:
     cost_rs = col3.number_input("Print Cost R.Sleeve", value=3.80)
     cost_ls = col4.number_input("Print Cost L.Sleeve", value=0.00)
 
-# Flash Costs
-with st.expander("Flash Costs (Adjust if needed)", expanded=False):
-    st.caption("Defaults to 0.10/0.20 per location logic")
-    c1, c2, c3, c4 = st.columns(4)
-    flash_f = c1.number_input("Flash Front", value=0.20)
-    flash_b = c2.number_input("Flash Back", value=0.10)
-    flash_rs = c3.number_input("Flash R.Sleeve", value=0.20)
-    flash_ls = c4.number_input("Flash L.Sleeve", value=0.0)
-    total_flash = flash_f + flash_b + flash_rs + flash_ls
-
 # Variable Expenses
 with st.expander("Variable Expenses (%)"):
     ve_rebates = st.number_input("Buyer Rebates %", value=0.0) / 100
@@ -123,29 +116,28 @@ with st.expander("Variable Expenses (%)"):
     ve_commissions = st.number_input("Sales Commissions %", value=4.4) / 100
     ve_freelance = st.number_input("Freelance Artist %", value=0.0) / 100
 
-# --- 5. FINAL MATH (REPLICATING YOUR SHEET) ---
+# --- 5. FINAL MATH ---
 
-# 1. Base Print Cost Sum
+# 1. Base Print Cost Sum (Includes the Auto-Calculated Flash now)
 raw_print_cost_per_unit = cost_front + cost_back + cost_rs + cost_ls + total_flash
 
 # 2. Screen Fees
 total_screen_fees = total_screens * price_per_screen
 
-# 3. Discount Logic (12% off total print order)
-# Logic: ( (Unit Print Cost * Units) + Screen Fees ) * (1 - 0.12)
+# 3. Discount Logic
 discount_percent = 0.12
 gross_print_run_cost = (raw_print_cost_per_unit * units) + total_screen_fees
 discounted_print_run_cost = gross_print_run_cost * (1 - discount_percent)
 
-# 4. Final Per Unit Print Cost (Allocating the discounted total back to per-unit)
+# 4. Final Per Unit Print Cost
 final_print_cost_per_unit = discounted_print_run_cost / units
 
 # 5. COGS
-vas_cost = 1.60 # Standard VAS from your sheet
+vas_cost = 1.60
 total_cogs = final_print_cost_per_unit + blank_price + vas_cost + fleece_charge
 
 # 6. Margins
-wholesale_price = retail_price / 2 # 50% of Retail
+wholesale_price = retail_price / 2
 gross_margin_dollar = wholesale_price - total_cogs
 gross_margin_percent = (gross_margin_dollar / wholesale_price) * 100
 
@@ -173,7 +165,6 @@ data = {
 }
 df = pd.DataFrame(data)
 
-# Highlight the COGS row
 st.dataframe(
     df.style.format({"Per Unit": "${:.2f}", "Total Run": "${:,.2f}"}), 
     use_container_width=True,
@@ -182,5 +173,6 @@ st.dataframe(
 
 with st.expander("Show detailed breakdown"):
     st.write(f"**Total Screen Fees:** ${total_screen_fees:.2f}")
+    st.write(f"**Auto-Calculated Flash Total:** ${total_flash:.2f}")
     st.write(f"**Pre-Discount Print Total:** ${gross_print_run_cost:.2f}")
     st.write(f"**Discount Applied:** 12% (-${gross_print_run_cost - discounted_print_run_cost:.2f})")
