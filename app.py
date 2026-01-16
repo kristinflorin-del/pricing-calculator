@@ -107,12 +107,28 @@ with st.sidebar:
     screens_b = st.number_input("Screens Back", 0, 10, 0)
     screens_rs = st.number_input("Screens Right Sleeve", 0, 10, 0)
     screens_ls = st.number_input("Screens Left Sleeve", 0, 10, 0)
+    
+    # NEW TOGGLE: Flash Charge
+    apply_flash = st.toggle(
+        "Include Flash Charge?", 
+        value=True, 
+        help="Toggle off if printing dark inks on white or light shirt only"
+    )
+
     total_screens = screens_f + screens_b + screens_rs + screens_ls
+    
+    # Calculate potential flash (base logic)
     flash_f = calculate_flash(screens_f)
     flash_b = calculate_flash(screens_b)
     flash_rs = calculate_flash(screens_rs)
     flash_ls = calculate_flash(screens_ls)
-    total_flash = flash_f + flash_b + flash_rs + flash_ls
+    
+    # Apply Toggle Logic
+    if apply_flash:
+        total_flash = flash_f + flash_b + flash_rs + flash_ls
+    else:
+        total_flash = 0.00
+
     st.info(f"Total Screens: {total_screens} | Flash Cost: ${total_flash:.2f}")
 
     # --- SECTION 3 ---
@@ -162,6 +178,7 @@ else:
     cost_rs = col3.number_input("Print Cost R.Sleeve", value=3.80)
     cost_ls = col4.number_input("Print Cost L.Sleeve", value=0.00)
 
+# Total flash is already calculated (or zeroed out) in the sidebar logic above
 raw_print_cost_per_unit = cost_front + cost_back + cost_rs + cost_ls + total_flash
 total_screen_fees = total_screens * calculated_screen_price
 gross_print_run_cost = (raw_print_cost_per_unit * units) + total_screen_fees
