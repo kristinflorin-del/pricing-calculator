@@ -3,7 +3,7 @@ import pandas as pd
 import math
 
 # --- 1. SETUP & CONFIGURATION ---
-# Added initial_sidebar_state="expanded" to keep the side panel open
+# initial_sidebar_state="expanded" ensures it opens automatically on load
 st.set_page_config(
     page_title="Print Cost Calculator 2026", 
     layout="wide", 
@@ -18,6 +18,14 @@ st.markdown("""
         .stTextInput > div > div > input { color: #FAFAFA; }
         .stNumberInput > div > div > input { color: #FAFAFA; }
         p, h1, h2, h3, label { color: #FAFAFA !important; }
+        
+        /* Make the Done button stand out slightly */
+        div.stButton > button {
+            width: 100%;
+            border-color: #FAFAFA;
+            color: #FAFAFA;
+            background-color: #262730;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -75,8 +83,6 @@ with st.sidebar:
 
     # --- SECTION 1 CONTAINER (To be filled last) ---
     st.header("1. Order Details")
-    # We create a placeholder container here so we can put the Retail Price
-    # at the TOP, even though we calculate it after gathering all other inputs.
     retail_container = st.container()
     
     # Standard Inputs for Sec 1
@@ -123,6 +129,26 @@ with st.sidebar:
     ve_commissions = st.number_input("Sales Commissions %", value=4.4) / 100
     ve_freelance = st.number_input("Freelance Artist %", value=0.0) / 100
 
+    # --- DONE BUTTON (Sidebar Footer) ---
+    st.markdown("---")
+    if st.button("Done"):
+        # This Javascript mimics clicking the "X" or "Arrow" to close the sidebar
+        st.markdown(
+            """
+            <script>
+                var collapseBtn = window.parent.document.querySelector('[data-testid="stSidebarCollapseButton"]');
+                if (collapseBtn) {
+                    collapseBtn.click();
+                } else {
+                    // Fallback attempt for different versions/mobile
+                    var headerBtn = window.parent.document.querySelector('[data-testid="stSidebar"] button');
+                    if (headerBtn) headerBtn.click();
+                }
+            </script>
+            """,
+            unsafe_allow_html=True
+        )
+
 # --- 4. CALCULATE COGS (For Retail Logic) ---
 
 use_auto_pricing = st.toggle("Use Automated Screen Print Price List Lookup?", value=True)
@@ -153,27 +179,14 @@ with retail_container:
     use_suggested = st.toggle("Suggest Retail Price?", value=True)
     
     if use_suggested:
-        # We need lowest price where:
-        # 1. Gross Margin > 54%
-        # 2. Contrib Margin > 24%
-        
-        # Total Var Exp %
         total_var_pct = ve_rebates + ve_royalties + ve_commissions + ve_freelance
-        
-        # Logic 1: Find min Retail for GM > 54%
         min_retail_gm = (total_cogs / 0.46) * 2
-        
-        # Logic 2: Find min Retail for CM > 24%
         denom = 0.76 - total_var_pct
         if denom <= 0:
             min_retail_cm = 999.00 
         else:
             min_retail_cm = (total_cogs / denom) * 2
-            
-        # We need the higher of the two requirements to satisfy BOTH
         target_retail = max(min_retail_gm, min_retail_cm)
-        
-        # Round up to next 0.05 increment
         suggested_retail = math.ceil(target_retail / 0.05) * 0.05
         
         retail_price = st.number_input(
@@ -183,7 +196,6 @@ with retail_container:
             help="Calculated to ensure GM > 54% and CM > 24% (Rounded to nearest $0.05)"
         )
     else:
-        # Standard manual input
         retail_price = st.number_input("Retail Price ($)", value=36.00)
 
 # --- 6. FINAL MARGIN MATH ---
